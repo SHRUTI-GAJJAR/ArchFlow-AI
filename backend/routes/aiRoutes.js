@@ -1,13 +1,26 @@
 const express = require("express");
 
 const {
-  testAIConnection,
+  analyzeCommunicationController,
+  getAIInsight,
 } = require("../controllers/aiController");
 
 const protect = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.get("/test", protect, testAIConnection);
+// Analyze a communication
+router.post(
+  "/analyze/:communicationId",
+  protect,
+  analyzeCommunicationController
+);
+
+// Get saved AI insight
+router.get(
+  "/insight/:communicationId",
+  protect,
+  getAIInsight
+);
 
 module.exports = router;

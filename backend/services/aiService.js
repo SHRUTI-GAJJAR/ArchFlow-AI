@@ -2,29 +2,75 @@ const { InferenceClient } = require("@huggingface/inference");
 
 const hf = new InferenceClient(process.env.HF_TOKEN);
 
-const testAI = async () => {
+// Analyze communication
+const analyzeCommunication = async (content) => {
   const response = await hf.chatCompletion({
     model: "openai/gpt-oss-120b",
 
     messages: [
       {
+        role: "system",
+        content: `
+You are an AI project communication analyst.
+
+Analyze the provided project communication and return ONLY valid JSON.
+
+The JSON must contain exactly these fields:
+
+{
+  "summary": "short summary of the communication",
+  "decisions": [],
+  "actionItems": [
+    {
+      "task": "",
+      "assignee": "",
+      "deadline": ""
+    }
+  ],
+  "deadlines": [
+    {
+      "description": "",
+      "date": ""
+    }
+  ],
+  "peopleInvolved": []
+}
+
+Rules:
+- Do not invent information.
+- If something is not mentioned, use an empty array or empty string.
+- Keep the summary concise.
+- Extract explicit decisions.
+- Extract tasks that someone needs to complete.
+- Include the responsible person when clearly mentioned.
+- Include deadlines when clearly mentioned.
+- Return JSON only.
+        `,
+      },
+      {
         role: "user",
-        content: "Reply with exactly: ArchFlow AI connection successful",
+        content: content,
       },
     ],
 
-    max_tokens: 200,
+    max_tokens: 1000,
     temperature: 0,
   });
 
-  console.log(
-    "FULL AI RESPONSE:",
-    JSON.stringify(response, null, 2)
-  );
+  const result = response.choices[0].message.content;
 
-  return response.choices[0].message.content;
+  if (!result) {
+    throw new Error("AI returned an empty response");
+  }
+
+  const cleanedResult = result
+    .replace(/```json/gi, "")
+    .replace(/```/g, "")
+    .trim();
+
+  return cleanedResult;
 };
 
 module.exports = {
-  testAI,
+  analyzeCommunication,
 };

@@ -1,0 +1,146 @@
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #17202a;
+  background: #f4f7f8;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+
+  --primary: #176b87;
+  --primary-dark: #105269;
+  --background: #f4f7f8;
+  --surface: #ffffff;
+  --border: #dce5e8;
+  --text: #17202a;
+  --muted: #66757d;
+  --success: #25845d;
+  --warning: #b97822;
+  --danger: #c24f52;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --shadow-sm: 0 4px 14px rgba(25, 54, 65, 0.06);
+  --shadow-md: 0 18px 45px rgba(25, 54, 65, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.app-shell {
+  display: grid;
+  min-height: 100vh;
+  padding: 32px;
+  place-items: center;
+  background:
+    radial-gradient(circle at 15% 10%, rgba(183, 218, 222, 0.35), transparent 30%),
+    linear-gradient(135deg, #f4f7f8 0%, #eaf1f2 100%);
+}
+
+.welcome-panel {
+  width: min(100%, 720px);
+  padding: clamp(32px, 7vw, 76px);
+  border: 1px solid rgba(220, 229, 232, 0.9);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow-md);
+  animation: panel-enter 500ms ease-out both;
+}
+
+.brand-mark {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 52px;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  color: #ffffff;
+  background: var(--primary);
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.eyebrow {
+  margin: 0 0 14px;
+  color: var(--primary);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+h1 {
+  max-width: 620px;
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(2.4rem, 6vw, 4.8rem);
+  line-height: 1.04;
+  letter-spacing: -0.04em;
+}
+
+.welcome-copy {
+  max-width: 540px;
+  margin: 26px 0 0;
+  color: var(--muted);
+  font-size: 1.08rem;
+  line-height: 1.7;
+}
+
+.status-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 40px;
+  padding: 10px 14px;
+  border: 1px solid #cce5d9;
+  border-radius: 999px;
+  color: var(--success);
+  background: #f1faf5;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+}
+
+@keyframes panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .app-shell {
+    padding: 16px;
+  }
+
+  .brand-mark {
+    margin-bottom: 36px;
+  }
+
+  .welcome-copy {
+    font-size: 1rem;
+  }
+}

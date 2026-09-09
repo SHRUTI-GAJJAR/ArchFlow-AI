@@ -523,23 +523,31 @@ HF_TOKEN=
 
 ---
 
-# 📸 Screenshots
+## 📸 Screenshots
 
-Screenshots of the deployed application can be added here to showcase the main product experience.
+Screenshots of the deployed application showcasing the main product experience.
 
 ### 🏠 Landing Page
 
+![ArchFlow AI Landing Page](./screenshots/landing-page.png)
+
 ### 📊 Dashboard
+
+![ArchFlow AI Dashboard](./screenshots/dashboard.png)
 
 ### 📁 Projects
 
+![ArchFlow AI Projects](./screenshots/projects.png)
+
 ### 💬 Communication Details
+
+![ArchFlow AI Communication Details](./screenshots/communication-details.png)
 
 ### 🧠 AI Insights
 
-> **AI Insights is the core product-defining experience of ArchFlow AI.**
+![ArchFlow AI Insights](./screenshots/ai-insights.png)
 
----
+> **AI Insights is the core product-defining experience of ArchFlow AI.**
 
 # 🚀 Local Development
 
@@ -734,7 +742,7 @@ Show confidence levels for extracted information.
 
 ## 🌐 Live Demo
 
-**[View ArchFlow AI Live](YOUR_VERCEL_URL)**
+**[View ArchFlow AI Live](https://arch-flow-ai-eosin.vercel.app/)**
 
 ## 💻 GitHub Repository
 

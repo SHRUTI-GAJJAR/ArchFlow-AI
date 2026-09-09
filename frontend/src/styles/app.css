@@ -131,6 +131,15 @@ h3 { margin-bottom: 8px; font-size: 0.98rem; }
 .source-label { color: var(--primary); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
 .communication-meta { display: flex; gap: 17px; color: var(--muted); font-size: 0.7rem; }
 .communication-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 11px; }
+.project-memory-search { margin-bottom: 18px; }
+.search-field { display: flex; flex-direction: column; gap: 8px; color: var(--text); font-size: 0.78rem; font-weight: 700; }
+.search-field input { width: 100%; min-height: 44px; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fbfdfd; color: var(--text); font-size: 0.88rem; }
+.search-field input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(23, 107, 135, 0.12); outline: none; }
+.search-summary { margin-bottom: 16px; color: var(--muted); font-size: 0.76rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.search-memory-preview { margin-bottom: 10px; color: var(--muted); font-size: 0.8rem; line-height: 1.55; overflow-wrap: anywhere; }
+.search-result-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.search-result-tags span { display: inline-flex; align-items: center; padding: 5px 8px; border: 1px solid #d3e6ea; border-radius: 999px; color: var(--primary-dark); background: #edf7f8; font-size: 0.66rem; font-weight: 700; }
+.search-empty-state { margin-top: 8px; }
 
 .form-stack { display: flex; flex-direction: column; gap: 17px; }
 .field-label { display: flex; flex-direction: column; gap: 7px; color: var(--text); font-size: 0.78rem; font-weight: 750; }
@@ -262,6 +271,7 @@ h3 { margin-bottom: 8px; font-size: 0.98rem; }
   .auth-brand-panel { min-height: 420px; }
   .auth-story { margin-top: 70px; }
   .communication-detail-grid { grid-template-columns: 1fr; }
+  .project-memory-search { margin-bottom: 12px; }
 }
 
 @media (max-width: 680px) {
@@ -283,6 +293,8 @@ h3 { margin-bottom: 8px; font-size: 0.98rem; }
   .communication-actions { display: none; }
   .communication-title-row { align-items: flex-start; flex-direction: column; gap: 3px; }
   .communication-main p { white-space: normal; }
+  .search-memory-preview { font-size: 0.77rem; }
+  .search-result-tags { gap: 6px; }
   .insight-grid { grid-template-columns: 1fr; }
   .deadline-list { grid-template-columns: 1fr; }
   .action-meta { flex-direction: column; gap: 4px; }
@@ -321,6 +333,8 @@ h3 { margin-bottom: 8px; font-size: 0.98rem; }
   .content-container { width: min(100%, 100%); }
   .source-label { white-space: normal; }
   .communication-meta { flex-direction: column; gap: 4px; }
+  .search-field input { font-size: 0.85rem; }
+  .search-result-tags span { font-size: 0.62rem; }
   .full-content { font-size: 0.88rem; overflow-wrap: anywhere; word-break: break-word; }
   .project-card-link h2, .project-row-info strong, .communication-title-row h3 { overflow-wrap: anywhere; word-break: break-word; }
   .project-card-link p, .action-content strong, .insight-summary p, .clean-list li { overflow-wrap: anywhere; word-break: break-word; }

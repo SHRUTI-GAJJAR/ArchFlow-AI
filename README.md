@@ -177,6 +177,12 @@ People or roles mentioned in the communication.
 
 Instead of returning a long AI response, ArchFlow AI presents extracted information in structured sections that are easier to scan and verify.
 
+### 🔎 Searchable Project Memory
+
+Project details include a lightweight frontend search across the communication history already loaded for that project. Search matches communication titles, content, sources, participants, and available saved AI insight data, including summaries, decisions, action items, assignees, deadlines, and people involved.
+
+Search results remain within the existing project communication list and link directly to the existing communication details route.
+
 ---
 
 # 🔄 How It Works
@@ -445,8 +451,7 @@ ArchFlow-AI/
 │   └── vite.config.js
 │
 ├── .gitignore
-├── README.md
-└── package.json
+└── README.md
 ```
 
 ---
@@ -497,6 +502,8 @@ GET /api/ai/insight/:communicationId
 ```
 
 Protected endpoints require a valid JWT authentication token.
+
+> Searchable Project Memory is implemented in the frontend over the existing project communication and saved insight responses; it does not add a separate backend search endpoint or database index.
 
 ---
 
@@ -563,7 +570,7 @@ Make sure you have:
 ## 1. Clone the Repository
 
 ```bash
-git https://github.com/SHRUTI-GAJJAR/ArchFlow-AI
+git clone https://github.com/SHRUTI-GAJJAR/ArchFlow-AI.git
 cd ArchFlow-AI
 ```
 

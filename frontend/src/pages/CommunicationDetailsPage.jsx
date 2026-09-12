@@ -11,13 +11,13 @@ import { capitalize, formatDate, getId } from '../utils/formatters'
 
 export default function CommunicationDetailsPage() {
   const { communicationId } = useParams(); const navigate = useNavigate()
-  const [communication, setCommunication] = useState(null); const [insight, setInsight] = useState(null); const [isLoading, setIsLoading] = useState(true); const [isAnalyzing, setIsAnalyzing] = useState(false); const [error, setError] = useState(''); const [success, setSuccess] = useState(''); const [showEdit, setShowEdit] = useState(false); const [isSaving, setIsSaving] = useState(false)
+  const [communication, setCommunication] = useState(null); const [insight, setInsight] = useState(null); const [isLoading, setIsLoading] = useState(true); const [isAnalyzing, setIsAnalyzing] = useState(false); const [error, setError] = useState(''); const [success, setSuccess] = useState(''); const [showEdit, setShowEdit] = useState(false); const [isSaving, setIsSaving] = useState(false); const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => { loadData() }, [communicationId])
   async function loadData() { setIsLoading(true); setError(''); try { const communicationData = await getCommunication(communicationId); setCommunication(communicationData); try { setInsight(await getCommunicationInsight(communicationId)) } catch (insightError) { if (insightError.response?.status !== 404) throw insightError } } catch (requestError) { setError(getApiErrorMessage(requestError)) } finally { setIsLoading(false) } }
   async function handleAnalyze() { setIsAnalyzing(true); setError(''); setSuccess(''); try { setInsight(await analyzeCommunication(communicationId)); setSuccess('AI analysis completed successfully.') } catch (requestError) { setError(getApiErrorMessage(requestError)) } finally { setIsAnalyzing(false) } }
   async function handleUpdate(data) { setIsSaving(true); setError(''); try { setCommunication(await updateCommunication(communicationId, data)); setShowEdit(false); setSuccess('Communication updated successfully.') } catch (requestError) { setError(getApiErrorMessage(requestError)) } finally { setIsSaving(false) } }
-  async function handleDelete() { if (!window.confirm(`Delete ${communication.title}?`)) return; try { await deleteCommunication(communicationId); navigate(`/projects/${getId(communication.project)}`) } catch (requestError) { setError(getApiErrorMessage(requestError)) } }
+  async function handleDelete() { if (!window.confirm(`Delete ${communication.title}?`)) return; if (isDeleting) return; setIsDeleting(true); try { await deleteCommunication(communicationId); navigate(`/projects/${getId(communication.project)}`) } catch (requestError) { setError(getApiErrorMessage(requestError)) } finally { setIsDeleting(false) } }
 
   if (isLoading) return <div className="content-container"><LoadingState label="Loading communication..." /></div>
   if (error && !communication) return <div className="content-container"><ErrorMessage message={error} onRetry={loadData} /></div>

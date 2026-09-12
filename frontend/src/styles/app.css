@@ -159,7 +159,7 @@ h3 { margin-bottom: 8px; font-size: 0.98rem; }
 .feedback-error { border-color: #efcfd0; color: #9d4145; background: #fff7f7; }
 .feedback-success { border-color: #c8e6d6; color: #176344; background: #f1faf5; }
 .loading-state { display: flex; min-height: 230px; align-items: center; justify-content: center; gap: 12px; color: var(--muted); font-size: 0.86rem; }
-.spinner { width: 17px; height: 17px; border: 2px solid #c6dfe2; border-top-color: var(--primary); border-radius: 50%; animation: spin 700ms linear infinite; }
+.spinner { display: block; width: 17px; height: 17px; flex: 0 0 17px; border: 2px solid #c6dfe2; border-top-color: var(--primary); border-radius: 50%; animation: spin 700ms linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .empty-state { display: flex; min-height: 270px; flex-direction: column; align-items: center; justify-content: center; padding: 35px; border: 1px dashed #b9cdd1; border-radius: var(--radius-md); text-align: center; background: rgba(255, 255, 255, 0.56); }
 .empty-icon { display: grid; width: 40px; height: 40px; margin-bottom: 14px; place-items: center; border-radius: 50%; color: var(--primary); background: #dceff1; font-size: 1.3rem; }

@@ -1,7 +1,7 @@
 export function LoadingState({ label = 'Loading...' }) {
   return (
     <div className="loading-state" role="status">
-      <span className="spinner" aria-hidden="true" />
+      <span className="loader" aria-hidden="true" />
       {label}
     </div>
   )

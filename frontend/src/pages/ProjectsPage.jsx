@@ -16,10 +16,16 @@ export default function ProjectsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [deletingProjectId, setDeletingProjectId] = useState(null)
   const loadRequestRef = useRef(0)
+  const submitRequestRef = useRef(0)
+  const deleteRequestRef = useRef(0)
 
   useEffect(() => {
     loadProjects()
-    return () => { loadRequestRef.current += 1 }
+    return () => {
+      loadRequestRef.current += 1
+      submitRequestRef.current += 1
+      deleteRequestRef.current += 1
+    }
   }, [])
 
   async function loadProjects() {
@@ -36,27 +42,45 @@ export default function ProjectsPage() {
   }
 
   async function handleProjectSubmit(projectData) {
+    const requestId = ++submitRequestRef.current
     setIsSubmitting(true); setError('')
     try {
       if (modal.project) {
         const updatedProject = await updateProject(getId(modal.project), projectData)
+        if (requestId !== submitRequestRef.current) return
         setProjects((current) => current.map((project) => getId(project) === getId(updatedProject) ? updatedProject : project))
         setSuccess('Project updated successfully.')
       } else {
         const newProject = await createProject(projectData)
+        if (requestId !== submitRequestRef.current) return
         setProjects((current) => [newProject, ...current])
         setSuccess('Project created successfully.')
       }
       setModal(null)
-    } catch (requestError) { setError(getApiErrorMessage(requestError)) } finally { setIsSubmitting(false) }
+    } catch (requestError) {
+      if (requestId === submitRequestRef.current) setError(getApiErrorMessage(requestError))
+    } finally {
+      if (requestId === submitRequestRef.current) setIsSubmitting(false)
+    }
   }
 
   async function handleDelete(project) {
+    if (deletingProjectId) return
     if (!window.confirm(`Delete ${project.name}? This cannot be undone.`)) return
+    const requestId = ++deleteRequestRef.current
     const projectId = getId(project)
     setDeletingProjectId(projectId)
     setError('')
-    try { await deleteProject(projectId); setProjects((current) => current.filter((item) => getId(item) !== projectId)); setSuccess('Project deleted successfully.') } catch (requestError) { setError(getApiErrorMessage(requestError)) } finally { setDeletingProjectId(null) }
+    try {
+      await deleteProject(projectId)
+      if (requestId !== deleteRequestRef.current) return
+      setProjects((current) => current.filter((item) => getId(item) !== projectId))
+      setSuccess('Project deleted successfully.')
+    } catch (requestError) {
+      if (requestId === deleteRequestRef.current) setError(getApiErrorMessage(requestError))
+    } finally {
+      if (requestId === deleteRequestRef.current) setDeletingProjectId(null)
+    }
   }
 
   return (

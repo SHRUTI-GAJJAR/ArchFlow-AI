@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getApiErrorMessage } from '../services/api'
@@ -13,6 +13,9 @@ export default function AuthPage({ mode }) {
   const [formData, setFormData] = useState({ name: '', email: '', password: '' })
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const submitRequestRef = useRef(0)
+
+  useEffect(() => () => { submitRequestRef.current += 1 }, [])
 
   if (isAuthenticated) return <Navigate to="/dashboard" replace />
 
@@ -22,6 +25,7 @@ export default function AuthPage({ mode }) {
 
   async function handleSubmit(event) {
     event.preventDefault()
+    const requestId = ++submitRequestRef.current
     setError('')
     setIsSubmitting(true)
 
@@ -29,12 +33,13 @@ export default function AuthPage({ mode }) {
       const response = isRegistering
         ? await registerUser(formData)
         : await loginUser({ email: formData.email, password: formData.password })
+      if (requestId !== submitRequestRef.current) return
       signIn(response)
       navigate(location.state?.from?.pathname || '/dashboard', { replace: true })
     } catch (requestError) {
-      setError(getApiErrorMessage(requestError))
+      if (requestId === submitRequestRef.current) setError(getApiErrorMessage(requestError))
     } finally {
-      setIsSubmitting(false)
+      if (requestId === submitRequestRef.current) setIsSubmitting(false)
     }
   }
 

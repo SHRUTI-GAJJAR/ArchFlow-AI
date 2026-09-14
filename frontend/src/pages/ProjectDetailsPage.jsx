@@ -15,16 +15,95 @@ export default function ProjectDetailsPage() {
   const [insightMap, setInsightMap] = useState({}); const [searchTerm, setSearchTerm] = useState('')
   const [isLoading, setIsLoading] = useState(true); const [error, setError] = useState(''); const [success, setSuccess] = useState(''); const [showForm, setShowForm] = useState(false); const [isSubmitting, setIsSubmitting] = useState(false); const [isDeletingProject, setIsDeletingProject] = useState(false); const [deletingCommunicationId, setDeletingCommunicationId] = useState(null)
   const loadRequestRef = useRef(0)
+  const submitRequestRef = useRef(0)
+  const deleteCommunicationRequestRef = useRef(0)
+  const deleteProjectRequestRef = useRef(0)
 
   useEffect(() => {
     loadData()
-    return () => { loadRequestRef.current += 1 }
+    return () => {
+      loadRequestRef.current += 1
+      submitRequestRef.current += 1
+      deleteCommunicationRequestRef.current += 1
+      deleteProjectRequestRef.current += 1
+    }
   }, [projectId])
 
-  async function loadData() { const requestId = ++loadRequestRef.current; setIsLoading(true); setError(''); try { const [projectData, communicationData] = await Promise.all([getProject(projectId), getProjectCommunications(projectId)]); if (requestId !== loadRequestRef.current) return; setProject(projectData); setCommunications(communicationData); const nextInsightMap = {}; for (const communication of communicationData) { const id = getId(communication); try { nextInsightMap[id] = await getCommunicationInsight(id) } catch (insightError) { if (insightError.response?.status !== 404) throw insightError; nextInsightMap[id] = null } } if (requestId === loadRequestRef.current) setInsightMap(nextInsightMap) } catch (requestError) { if (requestId === loadRequestRef.current) setError(getApiErrorMessage(requestError)) } finally { if (requestId === loadRequestRef.current) setIsLoading(false) } }
-  async function handleCommunicationSubmit(data) { setIsSubmitting(true); setError(''); try { const communication = await createCommunication(data); setCommunications((current) => [communication, ...current]); setShowForm(false); setSuccess('Communication added successfully.') } catch (requestError) { setError(getApiErrorMessage(requestError)) } finally { setIsSubmitting(false) } }
-  async function handleDeleteCommunication(communication) { if (!window.confirm(`Delete ${communication.title}?`)) return; const communicationId = getId(communication); if (deletingCommunicationId) return; setDeletingCommunicationId(communicationId); try { await deleteCommunication(communicationId); setCommunications((current) => current.filter((item) => getId(item) !== communicationId)); setSuccess('Communication deleted successfully.') } catch (requestError) { setError(getApiErrorMessage(requestError)) } finally { setDeletingCommunicationId(null) } }
-  async function handleDeleteProject() { if (!window.confirm(`Delete ${project.name}?`)) return; setIsDeletingProject(true); try { await deleteProject(projectId); navigate('/projects') } catch (requestError) { setError(getApiErrorMessage(requestError)) } finally { setIsDeletingProject(false) } }
+  async function loadData() {
+    const requestId = ++loadRequestRef.current
+    setIsLoading(true)
+    setError('')
+    try {
+      const [projectData, communicationData] = await Promise.all([getProject(projectId), getProjectCommunications(projectId)])
+      if (requestId !== loadRequestRef.current) return
+      setProject(projectData)
+      setCommunications(communicationData)
+      const nextInsightMap = {}
+      for (const communication of communicationData) {
+        if (requestId !== loadRequestRef.current) return
+        const id = getId(communication)
+        try {
+          nextInsightMap[id] = await getCommunicationInsight(id)
+        } catch (insightError) {
+          if (insightError.response?.status !== 404) throw insightError
+          nextInsightMap[id] = null
+        }
+      }
+      if (requestId === loadRequestRef.current) setInsightMap(nextInsightMap)
+    } catch (requestError) {
+      if (requestId === loadRequestRef.current) setError(getApiErrorMessage(requestError))
+    } finally {
+      if (requestId === loadRequestRef.current) setIsLoading(false)
+    }
+  }
+  async function handleCommunicationSubmit(data) {
+    const requestId = ++submitRequestRef.current
+    setIsSubmitting(true)
+    setError('')
+    try {
+      const communication = await createCommunication(data)
+      if (requestId !== submitRequestRef.current) return
+      setCommunications((current) => [communication, ...current])
+      setShowForm(false)
+      setSuccess('Communication added successfully.')
+    } catch (requestError) {
+      if (requestId === submitRequestRef.current) setError(getApiErrorMessage(requestError))
+    } finally {
+      if (requestId === submitRequestRef.current) setIsSubmitting(false)
+    }
+  }
+  async function handleDeleteCommunication(communication) {
+    if (deletingCommunicationId) return
+    if (!window.confirm(`Delete ${communication.title}?`)) return
+    const requestId = ++deleteCommunicationRequestRef.current
+    const communicationId = getId(communication)
+    setDeletingCommunicationId(communicationId)
+    try {
+      await deleteCommunication(communicationId)
+      if (requestId !== deleteCommunicationRequestRef.current) return
+      setCommunications((current) => current.filter((item) => getId(item) !== communicationId))
+      setSuccess('Communication deleted successfully.')
+    } catch (requestError) {
+      if (requestId === deleteCommunicationRequestRef.current) setError(getApiErrorMessage(requestError))
+    } finally {
+      if (requestId === deleteCommunicationRequestRef.current) setDeletingCommunicationId(null)
+    }
+  }
+  async function handleDeleteProject() {
+    if (isDeletingProject) return
+    if (!window.confirm(`Delete ${project.name}?`)) return
+    const requestId = ++deleteProjectRequestRef.current
+    setIsDeletingProject(true)
+    try {
+      await deleteProject(projectId)
+      if (requestId !== deleteProjectRequestRef.current) return
+      navigate('/projects')
+    } catch (requestError) {
+      if (requestId === deleteProjectRequestRef.current) setError(getApiErrorMessage(requestError))
+    } finally {
+      if (requestId === deleteProjectRequestRef.current) setIsDeletingProject(false)
+    }
+  }
 
   const normalizedQuery = searchTerm.trim().toLowerCase()
   const filteredCommunications = communications.filter((communication) => {
@@ -50,5 +129,5 @@ export default function ProjectDetailsPage() {
 
   return <div className="content-container"><Link className="back-link" to="/projects">← Back to projects</Link><div className="project-detail-heading"><div><div className="heading-with-badge"><span className={`status-badge status-badge-${project.status}`}>{capitalize(project.status || 'planning')}</span></div><h1>{project.name}</h1><p className="page-subtitle">{project.description || 'No project description yet.'}</p></div><div className="heading-actions"><button className="button button-danger-ghost" type="button" disabled={isDeletingProject} onClick={handleDeleteProject}>Delete project</button><button className="button button-primary" type="button" onClick={() => setShowForm(true)}>+ Add communication</button></div></div><SuccessMessage message={success} />{error && <ErrorMessage message={error} />}
     <div className="detail-meta"><span><strong>Client</strong>{project.clientName || 'Not added'}</span><span><strong>Created</strong>{formatDate(project.createdAt)}</span><span><strong>Last activity</strong>{formatRelativeDate(project.updatedAt)}</span><span><strong>Communications</strong>{communications.length}</span></div>
-    <section className="communications-section"><div className="section-heading-row"><div><p className="eyebrow">Project memory</p><h2>Communications</h2></div><span className="muted-copy">{communications.length} captured</span></div>{communications.length === 0 ? <EmptyState title="No communication captured" message="Add a meeting, email, chat, or note to start extracting project intelligence." action={<button className="button button-primary" type="button" onClick={() => setShowForm(true)}>Add communication</button>} /> : <><div className="project-memory-search"><label className="search-field" htmlFor="project-memory-search">Search project memory<input id="project-memory-search" type="search" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Search decisions, actions, deadlines, people..." /></label></div>{searchTerm && <div className="search-summary">{filteredCommunications.length} {filteredCommunications.length === 1 ? 'memory match' : 'memory matches'} in this project</div>}{filteredCommunications.length === 0 ? <div className="empty-state search-empty-state"><div className="empty-icon" aria-hidden="true">⌕</div><h3>No project memory matches</h3><p>Try a different keyword such as a person, deadline, decision, or action item.</p></div> : <div className="communication-list">{filteredCommunications.map((communication) => { const insight = insightMap[getId(communication)] || {}; const insightPreview = insight.summary || (insight.actionItems && insight.actionItems.length ? insight.actionItems.map((item) => item.task).join(' • ') : ''); const matchPreview = communication.content?.slice(0, 160) || insightPreview || 'No saved communication content available.'; return <article className="communication-row" key={getId(communication)}><div className={`source-icon source-${communication.source}`}>{communication.source?.charAt(0)?.toUpperCase() || 'N'}</div><div className="communication-main"><div className="communication-title-row"><Link to={`/communications/${getId(communication)}`}><h3>{communication.title}</h3></Link><span className="source-label">{capitalize(communication.source || 'note')}</span></div>{searchTerm && <p className="search-memory-preview">{matchPreview}{matchPreview.length >= 160 ? '...' : ''}</p>}{!searchTerm && <p>{communication.content?.slice(0, 150)}{communication.content?.length > 150 ? '...' : ''}</p>}{insight && (insight.summary || insight.actionItems?.length || insight.deadlines?.length || insight.peopleInvolved?.length) ? <div className="search-result-tags"><span>{insight.summary ? 'Summary' : 'Insight available'}</span>{insight.actionItems?.length ? <span>{insight.actionItems.length} action items</span> : null}{insight.deadlines?.length ? <span>{insight.deadlines.length} deadlines</span> : null}{insight.peopleInvolved?.length ? <span>{insight.peopleInvolved.length} people</span> : null}</div> : null}<div className="communication-meta"><span>{formatDate(communication.createdAt)}</span><span>{communication.participants?.length || 0} participants</span></div></div><div className="communication-actions"><Link className="text-button" to={`/communications/${getId(communication)}`}>Open →</Link><button className="text-button danger-text" type="button" onClick={() => handleDeleteCommunication(communication)}>Delete</button></div></article> })}</div>}</>}</section>{showForm && <Modal title="Add communication" onClose={() => setShowForm(false)}><CommunicationForm projectId={projectId} onSubmit={handleCommunicationSubmit} isSubmitting={isSubmitting} onCancel={() => setShowForm(false)} /></Modal>}</div>
+    <section className="communications-section"><div className="section-heading-row"><div><p className="eyebrow">Project memory</p><h2>Communications</h2></div><span className="muted-copy">{communications.length} captured</span></div>{communications.length === 0 ? <EmptyState title="No communication captured" message="Add a meeting, email, chat, or note to start extracting project intelligence." action={<button className="button button-primary" type="button" onClick={() => setShowForm(true)}>Add communication</button>} /> : <><div className="project-memory-search"><label className="search-field" htmlFor="project-memory-search">Search project memory<input id="project-memory-search" type="search" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Search decisions, actions, deadlines, people..." /></label></div>{searchTerm && <div className="search-summary">{filteredCommunications.length} {filteredCommunications.length === 1 ? 'memory match' : 'memory matches'} in this project</div>}{filteredCommunications.length === 0 ? <div className="empty-state search-empty-state"><div className="empty-icon" aria-hidden="true">⌕</div><h3>No project memory matches</h3><p>Try a different keyword such as a person, deadline, decision, or action item.</p></div> : <div className="communication-list">{filteredCommunications.map((communication) => { const insight = insightMap[getId(communication)] || {}; const insightPreview = insight.summary || (insight.actionItems && insight.actionItems.length ? insight.actionItems.map((item) => item.task).join(' • ') : ''); const matchPreview = communication.content?.slice(0, 160) || insightPreview || 'No saved communication content available.'; return <article className="communication-row" key={getId(communication)}><div className={`source-icon source-${communication.source}`}>{communication.source?.charAt(0)?.toUpperCase() || 'N'}</div><div className="communication-main"><div className="communication-title-row"><Link to={`/communications/${getId(communication)}`}><h3>{communication.title}</h3></Link><span className="source-label">{capitalize(communication.source || 'note')}</span></div>{searchTerm && <p className="search-memory-preview">{matchPreview}{matchPreview.length >= 160 ? '...' : ''}</p>}{!searchTerm && <p>{communication.content?.slice(0, 150)}{communication.content?.length > 150 ? '...' : ''}</p>}{insight && (insight.summary || insight.actionItems?.length || insight.deadlines?.length || insight.peopleInvolved?.length) ? <div className="search-result-tags"><span>{insight.summary ? 'Summary' : 'Insight available'}</span>{insight.actionItems?.length ? <span>{insight.actionItems.length} action items</span> : null}{insight.deadlines?.length ? <span>{insight.deadlines.length} deadlines</span> : null}{insight.peopleInvolved?.length ? <span>{insight.peopleInvolved.length} people</span> : null}</div> : null}<div className="communication-meta"><span>{formatDate(communication.createdAt)}</span><span>{communication.participants?.length || 0} participants</span></div></div><div className="communication-actions"><Link className="text-button" to={`/communications/${getId(communication)}`}>Open →</Link><button className="text-button danger-text" type="button" disabled={deletingCommunicationId === getId(communication)} onClick={() => handleDeleteCommunication(communication)}>{deletingCommunicationId === getId(communication) ? 'Deleting...' : 'Delete'}</button></div></article> })}</div>}</>}</section>{showForm && <Modal title="Add communication" onClose={() => setShowForm(false)}><CommunicationForm projectId={projectId} onSubmit={handleCommunicationSubmit} isSubmitting={isSubmitting} onCancel={() => setShowForm(false)} /></Modal>}</div>
 }

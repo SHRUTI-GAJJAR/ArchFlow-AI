@@ -127,6 +127,7 @@ h3 { margin-bottom: 8px; font-size: 1.02rem; }
   font-size: 0.9rem;
   font-weight: 700;
 }
+
 .back-link:hover { color: var(--primary); }
 .heading-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
 .heading-with-badge { margin-bottom: 13px; }
@@ -406,8 +407,21 @@ h3 { margin-bottom: 8px; font-size: 1.02rem; }
 .auth-story { align-self: center; max-width: 520px; margin: auto 0; }
 .auth-story h1 { color: #fff; font-size: clamp(2.35rem, 3.8vw, 4rem); }
 .auth-story > p:not(.eyebrow) { color: #c5dde0; line-height: 1.7; }
-.story-flow { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; margin-top: 33px; color: #a9d1d4; font-size: 0.73rem; font-weight: 750; }
-.story-flow b { color: #e0f0f0; }
+.story-flow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 33px;
+  color: #a9d1d4;
+  font-size: 0.73rem;
+  font-weight: 750;
+}
+
+.story-flow svg {
+  color: #e0f0f0;
+  flex: 0 0 auto;
+}
 .auth-form-panel { display: grid; padding: 35px clamp(25px, 7vw, 110px); place-items: center; background: #f5f8f8; }
 .auth-card { width: min(100%, 430px); }
 .auth-heading { margin-bottom: 30px; }

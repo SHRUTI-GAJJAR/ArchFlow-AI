@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { getApiErrorMessage } from '../services/api'
 import { loginUser, registerUser } from '../services/authService'
 import { ErrorMessage } from '../components/UiStates'
+import { MoveRight } from "lucide-react";
 
 export default function AuthPage({ mode }) {
   const isRegistering = mode === 'register'
@@ -55,8 +56,12 @@ export default function AuthPage({ mode }) {
           <h1>Turn project communication into actionable insights.</h1>
           <p>Analyze project conversations to identify decisions, action items, deadlines, and people involved.</p>
           <div className="story-flow">
-            <span>Capture</span><b>→</b><span>Analyze</span><b>→</b><span>Act</span>
-          </div>
+          <span>Capture</span>
+          <MoveRight size={20} strokeWidth={1.8} />
+          <span>Analyze</span>
+          <MoveRight size={20} strokeWidth={1.8} />
+          <span>Act</span>
+        </div>
         </div>
       </section>
       <section className="auth-form-panel">

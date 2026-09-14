@@ -46,11 +46,11 @@ export default function AuthPage({ mode }) {
           <span>ArchFlow <strong>AI</strong></span>
         </Link>
         <div className="auth-story">
-          <p className="eyebrow eyebrow-light">Project intelligence, made clear</p>
-          <h1>Make every conversation move the work forward.</h1>
-          <p>Turn meetings, emails, and notes into a clear view of what was decided, who owns the next step, and what needs attention.</p>
+          <p className="eyebrow eyebrow-light">Project communication, made actionable</p>
+          <h1>Turn project communication into actionable insights.</h1>
+          <p>Analyze project conversations to identify decisions, action items, deadlines, and people involved.</p>
           <div className="story-flow">
-            <span>Communication</span><b>→</b><span>AI analysis</span><b>→</b><span>Actionable clarity</span>
+            <span>Capture</span><b>→</b><span>Analyze</span><b>→</b><span>Act</span>
           </div>
         </div>
       </section>
@@ -59,7 +59,7 @@ export default function AuthPage({ mode }) {
           <div className="auth-heading">
             <p className="eyebrow">Welcome to ArchFlow AI</p>
             <h2>{isRegistering ? 'Create your workspace' : 'Welcome back'}</h2>
-            <p>{isRegistering ? 'Start turning project noise into a confident next step.' : 'Sign in to see what matters across your projects.'}</p>
+            <p>{isRegistering ? 'Set up your workspace for clearer project communication.' : 'Sign in to review your projects and communication.'}</p>
           </div>
           {error && <ErrorMessage message={error} />}
           <form className="form-stack" onSubmit={handleSubmit}>

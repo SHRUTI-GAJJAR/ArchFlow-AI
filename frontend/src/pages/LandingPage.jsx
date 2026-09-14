@@ -9,10 +9,11 @@ export default function LandingPage() {
       </header>
       <section className="landing-hero">
         <div className="hero-copy">
-          <p className="eyebrow">The calm layer for project communication</p>
-          <h1>Less catching up.<br /><em>More moving forward.</em></h1>
-          <p className="hero-description">ArchFlow AI turns scattered project conversations into clear summaries, accountable action items, and deadlines your team can trust.</p>
-          <div className="hero-actions"><Link className="button button-primary button-large" to="/register">Build your workspace <span>→</span></Link><Link className="quiet-link" to="/login">Already have an account? Sign in</Link></div>
+          <p className="eyebrow">Project communication, made actionable</p>
+          <h1>Turn project conversations into <em>clear next steps.</em></h1>
+          <p className="hero-description">ArchFlow AI analyzes meetings, notes, and project communication to surface summaries, decisions, action items, deadlines, and people involved.</p>
+          <p className="hero-tagline">Less catching up. More moving forward.</p>
+          <div className="hero-actions"><Link className="button button-primary button-large" to="/register">Get started <span>→</span></Link><Link className="quiet-link" to="/login">Already have an account? Sign in</Link></div>
         </div>
         <div className="hero-visual" aria-label="Example of extracted project intelligence">
           <div className="signal-card signal-source"><span className="signal-label">INPUT</span><strong>Client alignment call</strong><p>“Let's revise the living room layout and have the updated design ready by Friday.”</p><span className="signal-tag">Meeting transcript</span></div>
@@ -20,7 +21,7 @@ export default function LandingPage() {
           <div className="signal-card signal-result"><span className="signal-label">PROJECT INTELLIGENCE</span><strong>One clear next step</strong><div className="result-row"><span className="result-check">✓</span><span>Prepare revised living room design<br /><small>Architect · Due Friday</small></span></div><div className="result-footer"><span>1 decision</span><span>3 people involved</span></div></div>
         </div>
       </section>
-      <section className="landing-proof"><span>Capture the conversation</span><b>→</b><span>Extract what matters</span><b>→</b><span>Keep the project moving</span></section>
+      <section className="landing-proof"><span>Capture</span><b>→</b><span>Analyze</span><b>→</b><span>Act</span></section>
     </main>
   )
 }

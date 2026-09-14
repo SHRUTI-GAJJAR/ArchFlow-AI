@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import Modal from '../components/Modal'
 import CommunicationForm from '../components/CommunicationForm'
@@ -14,10 +14,14 @@ export default function ProjectDetailsPage() {
   const [project, setProject] = useState(null); const [communications, setCommunications] = useState([])
   const [insightMap, setInsightMap] = useState({}); const [searchTerm, setSearchTerm] = useState('')
   const [isLoading, setIsLoading] = useState(true); const [error, setError] = useState(''); const [success, setSuccess] = useState(''); const [showForm, setShowForm] = useState(false); const [isSubmitting, setIsSubmitting] = useState(false); const [isDeletingProject, setIsDeletingProject] = useState(false); const [deletingCommunicationId, setDeletingCommunicationId] = useState(null)
+  const loadRequestRef = useRef(0)
 
-  useEffect(() => { loadData() }, [projectId])
+  useEffect(() => {
+    loadData()
+    return () => { loadRequestRef.current += 1 }
+  }, [projectId])
 
-  async function loadData() { setIsLoading(true); setError(''); try { const [projectData, communicationData] = await Promise.all([getProject(projectId), getProjectCommunications(projectId)]); setProject(projectData); setCommunications(communicationData); const nextInsightMap = {}; for (const communication of communicationData) { const id = getId(communication); try { nextInsightMap[id] = await getCommunicationInsight(id) } catch (insightError) { if (insightError.response?.status !== 404) throw insightError; nextInsightMap[id] = null } } setInsightMap(nextInsightMap) } catch (requestError) { setError(getApiErrorMessage(requestError)) } finally { setIsLoading(false) } }
+  async function loadData() { const requestId = ++loadRequestRef.current; setIsLoading(true); setError(''); try { const [projectData, communicationData] = await Promise.all([getProject(projectId), getProjectCommunications(projectId)]); if (requestId !== loadRequestRef.current) return; setProject(projectData); setCommunications(communicationData); const nextInsightMap = {}; for (const communication of communicationData) { const id = getId(communication); try { nextInsightMap[id] = await getCommunicationInsight(id) } catch (insightError) { if (insightError.response?.status !== 404) throw insightError; nextInsightMap[id] = null } } if (requestId === loadRequestRef.current) setInsightMap(nextInsightMap) } catch (requestError) { if (requestId === loadRequestRef.current) setError(getApiErrorMessage(requestError)) } finally { if (requestId === loadRequestRef.current) setIsLoading(false) } }
   async function handleCommunicationSubmit(data) { setIsSubmitting(true); setError(''); try { const communication = await createCommunication(data); setCommunications((current) => [communication, ...current]); setShowForm(false); setSuccess('Communication added successfully.') } catch (requestError) { setError(getApiErrorMessage(requestError)) } finally { setIsSubmitting(false) } }
   async function handleDeleteCommunication(communication) { if (!window.confirm(`Delete ${communication.title}?`)) return; const communicationId = getId(communication); if (deletingCommunicationId) return; setDeletingCommunicationId(communicationId); try { await deleteCommunication(communicationId); setCommunications((current) => current.filter((item) => getId(item) !== communicationId)); setSuccess('Communication deleted successfully.') } catch (requestError) { setError(getApiErrorMessage(requestError)) } finally { setDeletingCommunicationId(null) } }
   async function handleDeleteProject() { if (!window.confirm(`Delete ${project.name}?`)) return; setIsDeletingProject(true); try { await deleteProject(projectId); navigate('/projects') } catch (requestError) { setError(getApiErrorMessage(requestError)) } finally { setIsDeletingProject(false) } }

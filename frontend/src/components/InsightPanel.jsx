@@ -5,7 +5,7 @@ export default function InsightPanel({ insight }) {
 
   return (
     <section className="insight-panel">
-      <div className="insight-heading"><div><p className="eyebrow">AI project intelligence</p><h2>What matters from this conversation</h2></div><span className="ai-badge">AI analyzed</span></div>
+      <div className="insight-heading"><div><p className="eyebrow">AI insights</p><h2>Key insights from this conversation</h2></div><span className="ai-badge">AI analyzed</span></div>
       <div className="insight-summary"><span className="insight-number">01</span><div><h3>Summary</h3><p>{insight.summary || 'No summary was returned.'}</p></div></div>
       <div className="insight-grid">
         <div className="insight-section"><h3>Decisions</h3>{insight.decisions?.length ? <ul className="clean-list">{insight.decisions.map((decision, index) => <li key={`${decision}-${index}`}>{decision}</li>)}</ul> : <p className="muted-copy">No decisions detected.</p>}</div>

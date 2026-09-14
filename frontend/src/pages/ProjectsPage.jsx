@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Modal from '../components/Modal'
 import ProjectForm from '../components/ProjectForm'
@@ -15,12 +15,24 @@ export default function ProjectsPage() {
   const [modal, setModal] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [deletingProjectId, setDeletingProjectId] = useState(null)
+  const loadRequestRef = useRef(0)
 
-  useEffect(() => { loadProjects() }, [])
+  useEffect(() => {
+    loadProjects()
+    return () => { loadRequestRef.current += 1 }
+  }, [])
 
   async function loadProjects() {
+    const requestId = ++loadRequestRef.current
     setIsLoading(true); setError('')
-    try { setProjects(await getProjects()) } catch (requestError) { setError(getApiErrorMessage(requestError)) } finally { setIsLoading(false) }
+    try {
+      const nextProjects = await getProjects()
+      if (requestId === loadRequestRef.current) setProjects(nextProjects)
+    } catch (requestError) {
+      if (requestId === loadRequestRef.current) setError(getApiErrorMessage(requestError))
+    } finally {
+      if (requestId === loadRequestRef.current) setIsLoading(false)
+    }
   }
 
   async function handleProjectSubmit(projectData) {
@@ -48,6 +60,6 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="content-container"><div className="page-heading"><div><p className="eyebrow">Workspace</p><h1>Projects</h1><p className="page-subtitle">Keep every project, conversation, and next step in view.</p></div><button className="button button-primary" type="button" onClick={() => setModal({ type: 'create' })}>+ New project</button></div><SuccessMessage message={success} />{error && <ErrorMessage message={error} onRetry={loadProjects} />}{isLoading ? <LoadingState label="Loading projects..." /> : projects.length === 0 ? <EmptyState title="No projects yet" message="Create a project to give your communication a home." action={<button className="button button-primary" type="button" onClick={() => setModal({ type: 'create' })}>Create project</button>} /> : <div className="project-card-grid">{projects.map((project) => <article className="project-card" key={getId(project)}><div className="project-card-top"><span className={`status-badge status-badge-${project.status}`}>{capitalize(project.status || 'planning')}</span><div className="card-menu"><button type="button" className="icon-button" aria-label={`Actions for ${project.name}`} onClick={() => setModal({ type: 'edit', project })}>•••</button></div></div><Link to={`/projects/${getId(project)}`} className="project-card-link"><span className="project-initial large">{project.name?.charAt(0)?.toUpperCase() || 'P'}</span><h2>{project.name}</h2><p>{project.description || 'No description added yet.'}</p></Link><div className="project-card-footer"><span>{project.clientName || 'No client'}</span><span>Updated {formatRelativeDate(project.updatedAt || project.createdAt)}</span></div><div className="card-actions"><Link className="text-button" to={`/projects/${getId(project)}`}>Open project →</Link><button className="text-button danger-text" type="button" disabled={deletingProjectId === getId(project)} onClick={() => handleDelete(project)}>Delete</button></div></article>)}</div>}{modal && <Modal title={modal.type === 'edit' ? 'Edit project' : 'Create a project'} onClose={() => setModal(null)}><ProjectForm project={modal.project} onSubmit={handleProjectSubmit} isSubmitting={isSubmitting} onCancel={() => setModal(null)} /></Modal>}</div>
+    <div className="content-container"><div className="page-heading"><div><p className="eyebrow">Workspace</p><h1>Projects</h1><p className="page-subtitle">Manage your projects and keep communication organized.</p></div><button className="button button-primary" type="button" onClick={() => setModal({ type: 'create' })}>+ New project</button></div><SuccessMessage message={success} />{error && <ErrorMessage message={error} onRetry={loadProjects} />}{isLoading ? <LoadingState label="Loading projects..." /> : projects.length === 0 ? <EmptyState title="No projects yet" message="Create a project to give your communication a home." action={<button className="button button-primary" type="button" onClick={() => setModal({ type: 'create' })}>Create project</button>} /> : <div className="project-card-grid">{projects.map((project) => <article className="project-card" key={getId(project)}><div className="project-card-top"><span className={`status-badge status-badge-${project.status}`}>{capitalize(project.status || 'planning')}</span><div className="card-menu"><button type="button" className="icon-button" aria-label={`Actions for ${project.name}`} onClick={() => setModal({ type: 'edit', project })}>•••</button></div></div><Link to={`/projects/${getId(project)}`} className="project-card-link"><span className="project-initial large">{project.name?.charAt(0)?.toUpperCase() || 'P'}</span><h2>{project.name}</h2><p>{project.description || 'No description added yet.'}</p></Link><div className="project-card-footer"><span>{project.clientName || 'No client'}</span><span>Updated {formatRelativeDate(project.updatedAt || project.createdAt)}</span></div><div className="card-actions"><Link className="text-button" to={`/projects/${getId(project)}`}>Open project →</Link><button className="text-button danger-text" type="button" disabled={deletingProjectId === getId(project)} onClick={() => handleDelete(project)}>Delete</button></div></article>)}</div>}{modal && <Modal title={modal.type === 'edit' ? 'Edit project' : 'Create a project'} onClose={() => setModal(null)}><ProjectForm project={modal.project} onSubmit={handleProjectSubmit} isSubmitting={isSubmitting} onCancel={() => setModal(null)} /></Modal>}</div>
   )
 }

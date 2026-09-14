@@ -6,6 +6,7 @@ import { EmptyState, ErrorMessage, LoadingState, SuccessMessage } from '../compo
 import { getApiErrorMessage } from '../services/api'
 import { createProject, deleteProject, getProjects, updateProject } from '../services/projectService'
 import { capitalize, formatRelativeDate, getId } from '../utils/formatters'
+import { Plus, MoveRight, SquarePen } from "lucide-react";
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState([])
@@ -84,6 +85,26 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="content-container"><div className="page-heading"><div><p className="eyebrow">Workspace</p><h1>Projects</h1><p className="page-subtitle">Manage your projects and keep communication organized.</p></div><button className="button button-primary" type="button" onClick={() => setModal({ type: 'create' })}>+ New project</button></div><SuccessMessage message={success} />{error && <ErrorMessage message={error} onRetry={loadProjects} />}{isLoading ? <LoadingState label="Loading projects..." /> : projects.length === 0 ? <EmptyState title="No projects yet" message="Create a project to give your communication a home." action={<button className="button button-primary" type="button" onClick={() => setModal({ type: 'create' })}>Create project</button>} /> : <div className="project-card-grid">{projects.map((project) => <article className="project-card" key={getId(project)}><div className="project-card-top"><span className={`status-badge status-badge-${project.status}`}>{capitalize(project.status || 'planning')}</span><div className="card-menu"><button type="button" className="icon-button" aria-label={`Actions for ${project.name}`} onClick={() => setModal({ type: 'edit', project })}>•••</button></div></div><Link to={`/projects/${getId(project)}`} className="project-card-link"><span className="project-initial large">{project.name?.charAt(0)?.toUpperCase() || 'P'}</span><h2>{project.name}</h2><p>{project.description || 'No description added yet.'}</p></Link><div className="project-card-footer"><span>{project.clientName || 'No client'}</span><span>Updated {formatRelativeDate(project.updatedAt || project.createdAt)}</span></div><div className="card-actions"><Link className="text-button" to={`/projects/${getId(project)}`}>Open project →</Link><button className="text-button danger-text" type="button" disabled={deletingProjectId === getId(project)} onClick={() => handleDelete(project)}>Delete</button></div></article>)}</div>}{modal && <Modal title={modal.type === 'edit' ? 'Edit project' : 'Create a project'} onClose={() => setModal(null)}><ProjectForm project={modal.project} onSubmit={handleProjectSubmit} isSubmitting={isSubmitting} onCancel={() => setModal(null)} /></Modal>}</div>
+    <div className="content-container"><div className="page-heading"><div><p className="eyebrow">Workspace</p><h1>Projects</h1><p className="page-subtitle">Manage your projects and keep communication organized.</p></div><button
+  className="button button-primary"
+  type="button"
+  onClick={() => setModal({ type: 'create' })}
+>
+  <Plus size={18} strokeWidth={1.8} />
+  New project
+</button>
+</div><SuccessMessage message={success} />{error && <ErrorMessage message={error} onRetry={loadProjects} />}{isLoading ? <LoadingState label="Loading projects..." /> : projects.length === 0 ? <EmptyState title="No projects yet" message="Create a project to give your communication a home." action={<button className="button button-primary" type="button" onClick={() => setModal({ type: 'create' })}>Create project</button>} /> : <div className="project-card-grid">{projects.map((project) => <article className="project-card" key={getId(project)}><div className="project-card-top"><span className={`status-badge status-badge-${project.status}`}>{capitalize(project.status || 'planning')}</span><div className="card-menu"><button
+  type="button"
+  className="icon-button"
+  aria-label={`Edit ${project.name}`}
+  onClick={() => setModal({ type: 'edit', project })}
+>
+  <SquarePen size={17} strokeWidth={1.8} />
+</button>
+</div></div><Link to={`/projects/${getId(project)}`} className="project-card-link"><span className="project-initial large">{project.name?.charAt(0)?.toUpperCase() || 'P'}</span><h2>{project.name}</h2><p>{project.description || 'No description added yet.'}</p></Link><div className="project-card-footer"><span>{project.clientName || 'No client'}</span><span>Updated {formatRelativeDate(project.updatedAt || project.createdAt)}</span></div><div className="card-actions">
+ <Link className="text-button" to={`/projects/${getId(project)}`}>
+  Open project <MoveRight size={17} strokeWidth={1.8} />
+</Link>
+<button className="text-button danger-text" type="button" disabled={deletingProjectId === getId(project)} onClick={() => handleDelete(project)}>Delete</button></div></article>)}</div>}{modal && <Modal title={modal.type === 'edit' ? 'Edit project' : 'Create a project'} onClose={() => setModal(null)}><ProjectForm project={modal.project} onSubmit={handleProjectSubmit} isSubmitting={isSubmitting} onCancel={() => setModal(null)} /></Modal>}</div>
   )
 }

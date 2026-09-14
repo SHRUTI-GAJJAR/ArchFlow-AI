@@ -4,6 +4,7 @@ import { EmptyState, ErrorMessage, LoadingState } from '../components/UiStates'
 import { getApiErrorMessage } from '../services/api'
 import { getProjects } from '../services/projectService'
 import { formatRelativeDate, getId, capitalize } from '../utils/formatters'
+import { MoveRight, Minus  } from "lucide-react";
 
 export default function DashboardPage() {
   const [projects, setProjects] = useState([])
@@ -35,11 +36,66 @@ export default function DashboardPage() {
 
   return (
     <div className="content-container">
-      <div className="page-heading dashboard-heading"><div><p className="eyebrow">Workspace overview</p><h1>Stay on top of your projects.</h1><p className="page-subtitle">Track projects, conversations, and the work that needs attention.</p></div><Link className="button button-primary" to="/projects">View projects <span>→</span></Link></div>
+      <div className="page-heading dashboard-heading">
+  <div>
+    <p className="eyebrow">Workspace overview</p>
+    <h1>Stay on top of your projects.</h1>
+    <p className="page-subtitle">
+      Track projects, conversations, and the work that needs attention.
+    </p>
+  </div>
+
+  <Link className="button button-primary" to="/projects">
+    View projects <MoveRight size={18} strokeWidth={1.8} />
+  </Link>
+</div>
       {error && <ErrorMessage message={error} onRetry={loadProjects} />}
       {isLoading ? <LoadingState label="Loading your workspace..." /> : projects.length === 0 ? <EmptyState title="Your workspace is ready" message="Create your first project to start turning communication into momentum." action={<Link className="button button-primary" to="/projects">Create your first project</Link>} /> : <>
-        <div className="stat-grid"><div className="stat-card"><span className="stat-label">Projects</span><strong>{projects.length}</strong><span className="stat-note">In this workspace</span></div><div className="stat-card stat-highlight"><span className="stat-label">Active projects</span><strong>{activeProjects}</strong><span className="stat-note">Currently active</span></div><div className="stat-card"><span className="stat-label">Completed</span><strong>{completedProjects}</strong><span className="stat-note">Completed projects</span></div><div className="stat-card"><span className="stat-label">Action items</span><strong>—</strong><span className="stat-note">From AI insights</span></div></div>
-        <section className="dashboard-section"><div className="section-heading-row"><div><p className="eyebrow">Recent activity</p><h2>Recent projects</h2></div><Link className="quiet-link" to="/projects">View all projects →</Link></div><div className="project-list">{projects.slice(0, 5).map((project) => <Link className="project-row" to={`/projects/${getId(project)}`} key={getId(project)}><span className="project-initial">{project.name?.charAt(0)?.toUpperCase() || 'P'}</span><span className="project-row-info"><strong>{project.name}</strong><span>{project.clientName || 'No client added'} · Updated {formatRelativeDate(project.updatedAt || project.createdAt)}</span></span><span className={`status-badge status-badge-${project.status}`}>{capitalize(project.status || 'planning')}</span><span className="row-arrow">→</span></Link>)}</div></section>
+        <div className="stat-grid"><div className="stat-card"><span className="stat-label">Projects</span><strong>{projects.length}</strong><span className="stat-note">In this workspace</span></div><div className="stat-card stat-highlight"><span className="stat-label">Active projects</span><strong>{activeProjects}</strong><span className="stat-note">Currently active</span></div><div className="stat-card"><span className="stat-label">Completed</span><strong>{completedProjects}</strong><span className="stat-note">Completed projects</span></div><div className="stat-card"><span className="stat-label">Action items</span><strong><Minus size={28} strokeWidth={1.9} /></strong><span className="stat-note">From AI insights</span></div></div>
+        <section className="dashboard-section">
+  <div className="section-heading-row">
+    <div>
+      <p className="eyebrow">Recent activity</p>
+      <h2>Recent projects</h2>
+    </div>
+
+    <Link className="quiet-link" to="/projects">
+      View all projects <MoveRight size={10} strokeWidth={1.8} />
+    </Link>
+  </div>
+
+  <div className="project-list">
+    {projects.slice(0, 5).map((project) => (
+      <Link
+        className="project-row"
+        to={`/projects/${getId(project)}`}
+        key={getId(project)}
+      >
+        <span className="project-initial">
+          {project.name?.charAt(0)?.toUpperCase() || 'P'}
+        </span>
+
+        <span className="project-row-info">
+          <strong>{project.name}</strong>
+          <span>
+            {project.clientName || 'No client added'} · Updated{' '}
+            {formatRelativeDate(project.updatedAt || project.createdAt)}
+          </span>
+        </span>
+
+        <span className={`status-badge status-badge-${project.status}`}>
+          {capitalize(project.status || 'planning')}
+        </span>
+
+        <MoveRight
+          className="row-arrow"
+          size={17}
+          strokeWidth={1.8}
+        />
+      </Link>
+    ))}
+  </div>
+</section>
       </>}
     </div>
   )

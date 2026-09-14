@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { ChevronDown } from "lucide-react";
 
 export default function Layout() {
   const { user, signOut } = useAuth()
@@ -52,7 +53,12 @@ export default function Layout() {
             <strong>{user?.name || 'Workspace member'}</strong>
             <span>{user?.email || ''}</span>
           </div>
-          <span className="profile-chevron" aria-hidden="true">⌄</span>
+          <ChevronDown
+            className="profile-chevron"
+            size={16}
+            strokeWidth={1.8}
+            aria-hidden="true"
+          />
           </button>
           {isProfileOpen && (
             <div className="profile-popover" role="menu">

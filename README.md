@@ -755,10 +755,6 @@ Show confidence levels for extracted information.
 
 **[View Source Code](https://github.com/SHRUTI-GAJJAR/ArchFlow-AI)**
 
-## 🎬 Demo Video
-
-**[Watch the 3–5 minute hackathon walkthrough](YOUR_DEMO_VIDEO_URL)**
-
 ---
 
 # 🧪 Validation

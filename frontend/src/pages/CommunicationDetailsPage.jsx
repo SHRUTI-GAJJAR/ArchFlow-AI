@@ -6,9 +6,9 @@ import InsightPanel from '../components/InsightPanel'
 import {
   ErrorMessage,
   LoadingState,
-  SuccessMessage,
 } from '../components/UiStates'
 import { getApiErrorMessage } from '../services/api'
+import { useToast } from '../context/ToastContext'
 import {
   getCommunication,
   updateCommunication,
@@ -24,17 +24,20 @@ import {
   getId,
 } from '../utils/formatters'
 import { MoveLeft } from "lucide-react";
+import { ShimmerButton } from '../components/ui/shimmer-button'
+import { BlurFade } from '../components/ui/blur-fade'
+import { AIScanner } from '../components/ui/ai-scanner'
 
 export default function CommunicationDetailsPage() {
   const { communicationId } = useParams()
   const navigate = useNavigate()
+  const toast = useToast()
 
   const [communication, setCommunication] = useState(null)
   const [insight, setInsight] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
   const [showEdit, setShowEdit] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -93,7 +96,6 @@ export default function CommunicationDetailsPage() {
 
     setIsAnalyzing(true)
     setError('')
-    setSuccess('')
 
     try {
       const insightData = await analyzeCommunication(communicationId)
@@ -101,7 +103,7 @@ export default function CommunicationDetailsPage() {
       if (requestId !== analyzeRequestRef.current) return
 
       setInsight(insightData)
-      setSuccess('AI analysis completed successfully.')
+      toast.success('AI analysis completed successfully.')
     } catch (requestError) {
       if (requestId === analyzeRequestRef.current) {
         setError(getApiErrorMessage(requestError))
@@ -124,7 +126,18 @@ export default function CommunicationDetailsPage() {
 
       setCommunication(updated)
       setShowEdit(false)
-      setSuccess('Communication updated successfully.')
+
+      // The backend drops an insight that describes the old content, so the
+      // stale summary must not stay on screen.
+      if (updated?.insightInvalidated) {
+        setInsight(null)
+        toast.success(
+          'Communication updated successfully.',
+          'Analyze again to refresh the AI insight.'
+        )
+      } else {
+        toast.success('Communication updated successfully.')
+      }
     } catch (requestError) {
       if (requestId === saveRequestRef.current) {
         setError(getApiErrorMessage(requestError))
@@ -217,22 +230,29 @@ export default function CommunicationDetailsPage() {
             Edit
           </button>
 
-          <button
-            className="button button-primary"
+          <ShimmerButton
+            className={`button button-primary ${
+              isAnalyzing ? 'analyze-in-progress' : ''
+            }`}
             type="button"
             onClick={handleAnalyze}
             disabled={isAnalyzing}
+            shimmerColor="#ffffff"
+            shimmerDuration="1.6s"
           >
-            {isAnalyzing
-              ? 'Analyzing...'
-              : insight
-                ? 'Re-analyze with AI'
-                : 'Analyze with AI'}
-          </button>
+            {isAnalyzing ? (
+              <AIScanner
+                label={insight ? 'Re-analyzing' : 'Analyzing'}
+                compact
+              />
+            ) : insight ? (
+              'Re-analyze with AI'
+            ) : (
+              'Analyze with AI'
+            )}
+          </ShimmerButton>
         </div>
       </div>
-
-      <SuccessMessage message={success} />
 
       {error && <ErrorMessage message={error} />}
 
@@ -272,16 +292,19 @@ export default function CommunicationDetailsPage() {
           </p>
 
           {!insight && (
-            <button
+            <ShimmerButton
               className="button button-primary button-full"
               type="button"
               onClick={handleAnalyze}
               disabled={isAnalyzing}
+              shimmerDuration="1.6s"
             >
-              {isAnalyzing
-                ? 'Analyzing communication...'
-                : 'Analyze with AI'}
-            </button>
+              {isAnalyzing ? (
+                <AIScanner label="Analyzing" />
+              ) : (
+                'Analyze with AI'
+              )}
+            </ShimmerButton>
           )}
         </aside>
       </div>

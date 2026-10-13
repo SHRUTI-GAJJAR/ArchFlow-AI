@@ -17,7 +17,12 @@ export async function createCommunication(communicationData) {
 
 export async function updateCommunication(communicationId, communicationData) {
   const response = await api.patch(`/communications/${communicationId}`, communicationData)
-  return response.data.communication
+
+  // Attach the invalidation flag so callers can refresh stale insights.
+  return {
+    ...response.data.communication,
+    insightInvalidated: Boolean(response.data.insightInvalidated),
+  }
 }
 
 export async function deleteCommunication(communicationId) {

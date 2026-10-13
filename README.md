@@ -177,6 +177,56 @@ People or roles mentioned in the communication.
 
 Instead of returning a long AI response, ArchFlow AI presents extracted information in structured sections that are easier to scan and verify.
 
+### ✨ Animated Interface
+
+Motion is used only where it carries meaning. Every animation respects
+`prefers-reduced-motion`.
+
+- Staggered fade-and-rise entrances (`BlurFade`) across pages, lists and
+  insight sections
+- Counting-up stat values (`NumberTicker`) on the dashboard and insight
+  section counts
+- A light sweep on the primary action (`ShimmerButton`) and a restrained
+  hover sweep on cards (`ShimmerCard`)
+- An AI "thinking" state (`AIScanner`) with a rotating compass and cycling
+  phase labels while a communication is being analyzed
+- Animated progress bars (`ProgressBar`) for real proportions
+- Slide-in, auto-expiring toasts (`Toast`) that replace the previous
+  static success banners
+- Route-level page transitions (`PageTransition`)
+
+### 🎨 Design Approach
+
+The interface deliberately avoids the things that make a product look
+generated:
+
+- **No ornamental texture.** No decorative grids, corner ticks, dimension
+  lines, particle backgrounds or title blocks. Every rule on screen
+  separates real content.
+- **Typography does the work.** A deliberate modular type scale, tight
+  leading and negative tracking on display type, a real spacing scale, and
+  a controlled measure on long-form copy.
+- **Monospace is reserved for metadata** — numerals, codes and labels —
+  never used as decoration.
+- **Asymmetry over symmetry.** The landing hero is top-aligned and
+  unbalanced on purpose rather than a centred two-column template.
+- **The product is described, not pictured.** The hero states what the
+  software extracts instead of showing a floating mock-product card.
+- **Flat surfaces.** Hairline borders and almost no shadow, so cards sit on
+  the page instead of floating above it.
+- **Specific content.** Demo data uses real project names, locations,
+  clients and construction detail, including open questions and things
+  still outstanding.
+
+> Tailwind CSS is configured with Preflight **disabled** on purpose. The
+> project styles itself with a hand-written design system in
+> `src/styles/app.css`; Tailwind's reset would override those element
+> defaults. Tailwind is available for utilities only.
+>
+> `src/styles/theme.css` holds the palette, type scale and spacing scale
+> and is applied purely by overriding CSS custom properties — switching
+> palettes requires no component changes.
+
 ### 🔎 Searchable Project Memory
 
 Project details include a lightweight frontend search across the communication history already loaded for that project. Search matches communication titles, content, sources, participants, and available saved AI insight data, including summaries, decisions, action items, assignees, deadlines, and people involved.
@@ -382,6 +432,8 @@ Communication text is sent to the Hugging Face inference service for analysis. T
 - 🔀 React Router
 - 🔗 Axios
 - 🎨 CSS
+- ✨ Tailwind CSS (utilities only — Preflight deliberately disabled)
+- 🧩 shadcn / Magic UI animated components
 
 ## Backend
 
@@ -420,7 +472,10 @@ ArchFlow-AI/
 │   │   ├── communicationController.js
 │   │   └── aiController.js
 │   ├── middleware/
-│   │   └── authMiddleware.js
+│   │   ├── authMiddleware.js
+│   │   ├── validateObjectId.js
+│   │   ├── ownership.js
+│   │   └── errorMiddleware.js
 │   ├── models/
 │   │   ├── User.js
 │   │   ├── Project.js
@@ -433,23 +488,48 @@ ArchFlow-AI/
 │   │   ├── communicationRoutes.js
 │   │   └── aiRoutes.js
 │   ├── services/
-│   │   └── aiService.js
+│   │   ├── aiService.js
+│   │   └── aiResponseParser.js
+│   ├── scripts/
+│   │   ├── seed-insight.js   # dev helper: demo insight without AI calls
+│   │   └── cleanup-demo.js   # dev helper: remove seeded demo data
 │   ├── utils/
+│   │   ├── ApiError.js
+│   │   ├── asyncHandler.js
+│   │   └── env.js
+│   ├── tests/
+│   │   ├── aiResponseParser.test.js
+│   │   ├── api.test.js
+│   │   └── testDb.js
 │   ├── server.js
+│   ├── eslint.config.js
 │   ├── package.json
-│   └── .gitignore
+│   └── .env.example
 │
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
+│   │   │   └── ui/           # shadcn/Magic UI animated components
 │   │   ├── pages/
 │   │   ├── services/
-│   │   ├── context/
-│   │   └── ...
+│   │   ├── context/          # AuthContext + ToastContext
+│   │   ├── lib/              # cn() helper
+│   │   └── styles/
+│   │       ├── app.css       # base design system
+│   │       ├── tailwind.css  # Tailwind utilities (no Preflight)
+│   │       ├── animations.css
+│   │       └── theme.css     # palette, type scale, spacing scale
+│   ├── components.json       # shadcn config
+│   ├── scripts/
+│   │   └── seed-demo.mjs     # dev helper: seeds demo projects
 │   ├── index.html
+│   ├── eslint.config.js
 │   ├── package.json
 │   └── vite.config.js
 │
+├── .github/
+│   └── workflows/
+│       └── ci.yml
 ├── .gitignore
 └── README.md
 ```
@@ -467,6 +547,17 @@ POST /api/auth/register
 POST /api/auth/login
 ```
 
+## 👤 Current User
+
+These routes always act on the signed-in user and never accept an `:id`,
+so one account can never read, modify or delete another's data.
+
+```text
+GET    /api/users/me
+PATCH  /api/users/me
+DELETE /api/users/me
+```
+
 ## 📁 Projects
 
 ```text
@@ -477,6 +568,8 @@ PATCH  /api/projects/:id
 DELETE /api/projects/:id
 ```
 
+Deleting a project cascades to its communications and their AI insights.
+
 ## 💬 Communications
 
 ```text
@@ -486,6 +579,13 @@ GET    /api/communications/:id
 PATCH  /api/communications/:id
 DELETE /api/communications/:id
 ```
+
+Editing a communication's **content** deletes its saved insight, because
+an insight describes specific text. The response sets
+`insightInvalidated: true` so the UI can prompt for a re-analysis. Title,
+source or participant edits keep the existing insight.
+
+Deleting a communication cascades to its AI insight.
 
 ## 🧠 AI Insights
 
@@ -501,6 +601,18 @@ Retrieve an existing insight:
 GET /api/ai/insight/:communicationId
 ```
 
+Fetch many insights in a single request (used by the project details page):
+
+```text
+POST /api/ai/insights/batch
+```
+
+Aggregate counts for the dashboard:
+
+```text
+GET /api/ai/insights/summary
+```
+
 Protected endpoints require a valid JWT authentication token.
 
 > Searchable Project Memory is implemented in the frontend over the existing project communication and saved insight responses; it does not add a separate backend search endpoint or database index.
@@ -514,9 +626,40 @@ ArchFlow AI follows basic security practices including:
 - Password hashing with bcrypt
 - JWT authentication
 - Protected API routes
-- Project ownership validation
+- Project and communication ownership validation
+- User routes scoped to the authenticated account only
+- Security headers via Helmet
+- CORS restricted to a configured origin allowlist
+- Rate limiting on auth, AI analysis, and all routes globally
+- Request payload size limits
 - Environment variables for sensitive credentials
 - `.env` excluded from Git
+
+### 🛡️ Error Handling
+
+All routes funnel through a central error handler. Only deliberate
+`ApiError` messages and allow-listed Mongoose errors are sent to the
+client; unexpected failures are logged server-side and replaced with a
+generic message so internals are never exposed.
+
+Malformed identifiers are rejected with a `400` before reaching the
+database layer.
+
+### ⏱️ Rate Limits
+
+| Scope | Limit |
+| ----- | ----- |
+| `/api/auth/*` | 20 failed attempts per 15 min |
+| `/api/ai/analyze/*` | 20 analyses per min |
+| All routes | 1000 requests per 15 min |
+
+### 🔁 AI Response Handling
+
+Model output is not trusted blindly. Responses are stripped of markdown
+fences and reasoning preambles, extracted as a balanced JSON object,
+parsed, then validated and normalized into the schema shape before
+storage. Malformed or transient failures are retried up to 3 times with
+exponential backoff.
 
 Sensitive environment variables include:
 
@@ -524,7 +667,12 @@ Sensitive environment variables include:
 MONGODB_URI=
 JWT_SECRET=
 HF_TOKEN=
+CORS_ORIGIN=
 ```
+
+Copy `backend/.env.example` to `backend/.env` and fill in the values.
+The server validates the environment at startup and exits with a clear
+message if anything required is missing.
 
 > **Never commit real secret values to GitHub.**
 
@@ -589,7 +737,11 @@ PORT=5500
 MONGODB_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
 HF_TOKEN=your_huggingface_token
+CORS_ORIGIN=http://localhost:5173
+NODE_ENV=development
 ```
+
+See `backend/.env.example` for the full annotated list.
 
 The backend will run locally on:
 
@@ -612,6 +764,60 @@ Create `frontend/.env`:
 ```env
 VITE_API_URL=http://localhost:5500/api
 ```
+
+See `frontend/.env.example` for details.
+
+### Optional: Seed Demo Data
+
+To populate the workspace with example projects and communications:
+
+```bash
+cd frontend
+node scripts/seed-demo.mjs
+```
+
+It prints a generated email, password, and JWT you can use to sign in.
+
+To exercise the insight panel without spending AI provider credits, seed a
+sample insight for one of the generated communications:
+
+```bash
+cd backend
+node scripts/seed-insight.js <communicationId>
+```
+
+To remove everything the seed scripts created:
+
+```bash
+cd backend
+node scripts/cleanup-demo.js
+```
+
+---
+
+# ✅ Quality Checks
+
+Both packages ship lint and test tooling.
+
+```bash
+# Backend
+cd backend
+npm run lint
+npm test
+
+# Frontend
+cd frontend
+npm run lint
+npm run build
+```
+
+The backend test suite covers the AI response parser and the REST API
+(ownership, ObjectId validation, cascade deletes, insight invalidation,
+batch insights, and auth behaviour). It uses an in-memory MongoDB, so no
+external database or API calls are required.
+
+GitHub Actions runs lint, tests, and the production build on every push
+and pull request. See `.github/workflows/ci.yml`.
 
 ---
 

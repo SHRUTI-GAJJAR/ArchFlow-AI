@@ -7,15 +7,21 @@ import {
 } from '../components/UiStates'
 import { getApiErrorMessage } from '../services/api'
 import { getProjects } from '../services/projectService'
+import { getInsightSummary } from '../services/aiService'
 import {
   formatRelativeDate,
   getId,
   capitalize,
 } from '../utils/formatters'
-import { MoveRight, Minus } from "lucide-react";
+import { MoveRight } from "lucide-react";
+import { NumberTicker } from '../components/ui/number-ticker'
+import { ShimmerCard } from '../components/ui/shimmer-card'
+import { BlurFade } from '../components/ui/blur-fade'
+import { ProgressBar } from '../components/ui/progress-bar'
 
 export default function DashboardPage() {
   const [projects, setProjects] = useState([])
+  const [insightSummary, setInsightSummary] = useState({})
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const loadRequestRef = useRef(0)
@@ -35,10 +41,14 @@ export default function DashboardPage() {
     setError('')
 
     try {
-      const nextProjects = await getProjects()
+      const [nextProjects, nextSummary] = await Promise.all([
+        getProjects(),
+        getInsightSummary().catch(() => ({})),
+      ])
 
       if (requestId === loadRequestRef.current) {
         setProjects(nextProjects)
+        setInsightSummary(nextSummary)
       }
     } catch (requestError) {
       if (requestId === loadRequestRef.current) {
@@ -92,31 +102,77 @@ export default function DashboardPage() {
       ) : (
         <>
           <div className="stat-grid">
-            <div className="stat-card">
+            <ShimmerCard className="stat-card" delay={0}>
               <span className="stat-label">Projects</span>
-              <strong>{projects.length}</strong>
+              <strong>
+                <NumberTicker value={projects.length} inView />
+              </strong>
               <span className="stat-note">In this workspace</span>
-            </div>
+            </ShimmerCard>
 
-            <div className="stat-card stat-highlight">
+            <ShimmerCard
+              className="stat-card stat-highlight"
+              delay={100}
+            >
               <span className="stat-label">Active projects</span>
-              <strong>{activeProjects}</strong>
-              <span className="stat-note">Currently active</span>
-            </div>
+              <strong>
+                <NumberTicker value={activeProjects} inView />
+              </strong>
+              <ProgressBar
+                className="stat-progress"
+                value={projects.length ? (activeProjects / projects.length) * 100 : 0}
+                label={`${Math.round(
+                  projects.length ? (activeProjects / projects.length) * 100 : 0
+                )}% active`}
+                delay={200}
+              />
+            </ShimmerCard>
 
-            <div className="stat-card">
+            <ShimmerCard className="stat-card" delay={200}>
               <span className="stat-label">Completed</span>
-              <strong>{completedProjects}</strong>
-              <span className="stat-note">Completed projects</span>
-            </div>
+              <strong>
+                <NumberTicker value={completedProjects} inView />
+              </strong>
+              <ProgressBar
+                className="stat-progress"
+                value={projects.length ? (completedProjects / projects.length) * 100 : 0}
+                label={`${Math.round(
+                  projects.length ? (completedProjects / projects.length) * 100 : 0
+                )}% completed`}
+                delay={320}
+              />
+            </ShimmerCard>
 
-            <div className="stat-card">
+            <ShimmerCard className="stat-card" delay={300}>
               <span className="stat-label">Action items</span>
               <strong>
-                <Minus size={28} strokeWidth={1.9} />
+                <NumberTicker
+                  value={insightSummary.pendingActionItems ?? 0}
+                  inView
+                />
               </strong>
-              <span className="stat-note">From AI insights</span>
-            </div>
+              <span className="stat-note">
+                {insightSummary.pendingActionItems
+                  ? 'Pending from AI insights'
+                  : 'No pending action items'}
+              </span>
+              {/* The bar only earns its space once there is something
+                  to show - an empty track reads as a rendering fault. */}
+              {insightSummary.totalActionItems > 0 && (
+                <ProgressBar
+                  className="stat-progress"
+                  value={
+                    (insightSummary.pendingActionItems /
+                      insightSummary.totalActionItems) *
+                    100
+                  }
+                  label={`${insightSummary.pendingActionItems || 0} of ${
+                    insightSummary.totalActionItems || 0
+                  } still pending`}
+                  delay={440}
+                />
+              )}
+            </ShimmerCard>
           </div>
 
           <section className="dashboard-section">
@@ -132,38 +188,43 @@ export default function DashboardPage() {
             </div>
 
             <div className="project-list">
-              {projects.slice(0, 5).map((project) => (
-                <Link
-                  className="project-row"
-                  to={`/projects/${getId(project)}`}
+              {projects.slice(0, 5).map((project, index) => (
+                <BlurFade
                   key={getId(project)}
+                  delay={index * 60}
+                  inView
                 >
-                  <span className="project-initial">
-                    {project.name?.charAt(0)?.toUpperCase() || 'P'}
-                  </span>
-
-                  <span className="project-row-info">
-                    <strong>{project.name}</strong>
-                    <span>
-                      {project.clientName || 'No client added'} · Updated{' '}
-                      {formatRelativeDate(
-                        project.updatedAt || project.createdAt
-                      )}
-                    </span>
-                  </span>
-
-                  <span
-                    className={`status-badge status-badge-${project.status}`}
+                  <Link
+                    className="project-row"
+                    to={`/projects/${getId(project)}`}
                   >
-                    {capitalize(project.status || 'planning')}
-                  </span>
+                    <span className="project-initial">
+                      {project.name?.charAt(0)?.toUpperCase() || 'P'}
+                    </span>
 
-                  <MoveRight
-                    className="row-arrow"
-                    size={17}
-                    strokeWidth={1.8}
-                  />
-                </Link>
+                    <span className="project-row-info">
+                      <strong>{project.name}</strong>
+                      <span>
+                        {project.clientName || 'No client added'} · Updated{' '}
+                        {formatRelativeDate(
+                          project.updatedAt || project.createdAt
+                        )}
+                      </span>
+                    </span>
+
+                    <span
+                      className={`status-badge status-badge-${project.status}`}
+                    >
+                      {capitalize(project.status || 'planning')}
+                    </span>
+
+                    <MoveRight
+                      className="row-arrow"
+                      size={17}
+                      strokeWidth={1.8}
+                    />
+                  </Link>
+                </BlurFade>
               ))}
             </div>
           </section>

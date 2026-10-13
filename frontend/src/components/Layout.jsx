@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { ChevronDown } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import PageTransition from './ui/page-transition'
 
 export default function Layout() {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const profileMenuRef = useRef(null)
 
@@ -128,7 +130,9 @@ export default function Layout() {
       </header>
 
       <main className="page-content">
-        <Outlet />
+        <PageTransition transitionKey={location.pathname}>
+          <Outlet />
+        </PageTransition>
       </main>
     </div>
   )

@@ -1,0 +1,428 @@
+/*
+ * Motion.
+ *
+ * Only styles for components that are still in use live here. An earlier
+ * pass included decorative layers (meteors, dot grid, blueprint grid,
+ * dimension lines, animated beam); those were removed because motion
+ * that carries no information is one of the things that makes an
+ * interface read as generated.
+ *
+ * Everything here respects prefers-reduced-motion (see tailwind.css).
+ */
+
+/* ------------------------------------------------------------------ */
+/* BlurFade - staggered fade and rise                                  */
+/* ------------------------------------------------------------------ */
+
+@keyframes blur-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--blur-fade-y, 8px));
+    filter: blur(var(--blur-fade-blur, 0px));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.animate-blur-fade {
+  animation: blur-fade-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--blur-fade-delay, 0ms);
+}
+
+/* Pre-animation state for elements waiting to scroll into view.
+   Opacity only, so layout is not locked while they wait. */
+.blur-fade-hidden {
+  opacity: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* ShimmerButton - light sweep on the primary action                   */
+/* ------------------------------------------------------------------ */
+
+.shimmer-btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.shimmer-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 20%,
+    var(--shimmer-color, #ffffff) 50%,
+    transparent 80%
+  );
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@media (hover: hover) {
+  .shimmer-btn:hover::after {
+    animation: shimmer-sweep var(--shimmer-duration, 2.4s) infinite;
+  }
+}
+
+/* Touch devices never hover, so the sweep runs on a slow loop instead. */
+@media (hover: none) {
+  .shimmer-btn::after {
+    animation: shimmer-sweep var(--shimmer-duration, 2.4s) infinite;
+    animation-delay: 1.4s;
+  }
+}
+
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.shimmer-btn-content {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+/* ------------------------------------------------------------------ */
+/* ShimmerCard - restrained hover sweep on cards                       */
+/* ------------------------------------------------------------------ */
+
+.shimmer-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 35%,
+    var(--shimmer-color, rgba(12, 59, 76, 0.09)) 50%,
+    transparent 65%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
+@media (hover: hover) {
+  .shimmer-card:hover::before {
+    animation: shimmer-card-sweep 850ms ease-out;
+  }
+}
+
+@keyframes shimmer-card-sweep {
+  0% {
+    transform: translateX(-100%);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* AI analysis state                                                   */
+/* ------------------------------------------------------------------ */
+
+@keyframes soft-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.analyze-in-progress {
+  cursor: progress;
+}
+
+.analyze-in-progress .shimmer-btn-content {
+  animation: soft-pulse 1.4s ease-in-out infinite;
+}
+
+.ai-scanner {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.ai-scanner-stage {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+
+.ai-scanner-ring,
+.ai-scanner-ring-inner {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.ai-scanner-ring {
+  inset: 0;
+  border: 1.5px solid var(--border);
+  border-top-color: var(--primary);
+  animation: ai-compass-spin 1.1s linear infinite;
+}
+
+.ai-scanner-ring-inner {
+  inset: 5px;
+  border: 1.5px solid var(--border);
+  border-bottom-color: var(--muted);
+  animation: ai-compass-spin 0.8s linear infinite reverse;
+}
+
+@keyframes ai-compass-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ai-scanner-sweep {
+  position: absolute;
+  top: 50%;
+  left: -30%;
+  width: 55%;
+  height: 1.5px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--primary),
+    transparent
+  );
+  animation: ai-sweep 1.5s ease-in-out infinite;
+}
+
+@keyframes ai-sweep {
+  0% {
+    left: -30%;
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    left: 78%;
+    opacity: 0;
+  }
+}
+
+.ai-scanner-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ai-scanner-title {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.ai-scanner-phase {
+  font-size: var(--text-sm);
+  color: var(--muted);
+  animation: soft-pulse 1.8s ease-in-out infinite;
+}
+
+/* ------------------------------------------------------------------ */
+/* Layout guards for animated wrappers                                */
+/* ------------------------------------------------------------------ */
+
+/* BlurFade renders the row itself, so the wrapper only needs to stay a
+   block. */
+.project-list > .animate-blur-fade,
+.project-list > .blur-fade-hidden,
+.communication-row-wrap {
+  display: block;
+}
+
+.project-list > .animate-blur-fade > .project-row:last-child,
+.communication-row-wrap > .communication-row:last-child {
+  border-bottom: none;
+}
+
+/* Hero copy wrappers must stay blocks so the stacked flow inside
+   .hero-copy is unchanged. */
+.landing-hero .hero-copy > .animate-blur-fade,
+.landing-hero .hero-copy > .blur-fade-hidden {
+  display: block;
+}
+
+/* The BlurFade wrapper around .auth-card must not disturb the card's
+   own layout. */
+.auth-card-animate {
+  display: block;
+  width: 100%;
+}
+
+/* ------------------------------------------------------------------ */
+/* Page transition                                                     */
+/* ------------------------------------------------------------------ */
+
+.page-transition {
+  animation: page-in 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Toast                                                               */
+/* ------------------------------------------------------------------ */
+
+.toast-stack {
+  position: fixed;
+  right: clamp(12px, 2vw, 26px);
+  bottom: clamp(12px, 2vw, 26px);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  max-width: min(92vw, 380px);
+}
+
+.toast {
+  position: relative;
+  display: flex;
+  gap: var(--s-3);
+  align-items: flex-start;
+  padding: var(--s-3) var(--s-4);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+  animation: toast-in 0.34s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.toast-timer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--muted);
+  animation: toast-drain var(--toast-duration, 4200ms) linear forwards;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes toast-drain {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.toast-success {
+  border-left: 2px solid var(--success);
+}
+
+.toast-error {
+  border-left: 2px solid var(--danger);
+}
+
+.toast-icon {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.toast-success .toast-icon {
+  color: var(--success);
+}
+
+.toast-error .toast-icon {
+  color: var(--danger);
+}
+
+.toast-body {
+  min-width: 0;
+}
+
+.toast-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.toast-detail {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.toast-close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin: -2px -4px 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  background: transparent;
+  transition: color 140ms ease, background 140ms ease;
+}
+
+.toast-close:hover {
+  color: var(--text);
+  background: var(--surface-soft);
+}
+
+.feedback {
+  animation: toast-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}

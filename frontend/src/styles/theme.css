@@ -1,0 +1,457 @@
+/*
+ * ArchFlow theme layer.
+ *
+ * Loaded AFTER app.css, so it overrides the base design tokens.
+ *
+ * Intent: craft comes from typography, a real spacing scale and
+ * restraint — not from decorative layers. An earlier pass added a
+ * blueprint motif (dot grid, corner ticks, dimension lines, title
+ * block); all of that has been removed because texture that carries no
+ * information is what makes an interface read as generated.
+ *
+ * What remains here is the part that earns its place: colour tokens, a
+ * type scale, a spacing scale, and deliberate refinements to existing
+ * components.
+ */
+
+:root {
+  /* ---- Palette ------------------------------------------------ */
+  --primary: #0c3b4c;
+  --primary-dark: #072a37;
+  --background: #f6f5f1;
+  --surface: #ffffff;
+  --surface-soft: #efeeea;
+
+  --text: #16262c;
+  --muted: #62727a;
+
+  --success: #2f6b4f;
+  --warning: #8f6318;
+  --danger: #a8453f;
+
+  --border: #ded9d1;
+  --border-strong: #c8c1b6;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+
+  /* Depth is barely used. Flat surfaces, hairline rules. */
+  --shadow-sm: 0 1px 2px rgba(22, 38, 44, 0.04);
+  --shadow-md: 0 4px 14px rgba(22, 38, 44, 0.07);
+
+  --content-max: min(100%, 1600px);
+  --page-pad-x: clamp(20px, 5vw, 72px);
+  --control-height: 44px;
+
+  /* ---- Type --------------------------------------------------- */
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  /* Reserved for genuine metadata: numerals, codes, timestamps.
+     Never used for decoration. */
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* A modular scale. Steps are deliberate, not incidental. */
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-md: 1.0625rem;
+  --text-lg: clamp(1.15rem, 1.6vw, 1.375rem);
+
+  /* Display size is for the landing hero ONLY. Applying it to internal
+     page titles made every screen read like a marketing page. */
+  --text-display: clamp(2.5rem, 5.4vw, 4.25rem);
+
+  /* Internal page titles sit a step below display. */
+  --text-page-title: clamp(1.7rem, 1.15vw + 1.15rem, 2.2rem);
+
+  /* ---- Spacing scale ------------------------------------------ */
+  /* Every margin and padding in the layer below uses one of these. */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+  --s-9: 96px;
+
+  /* Optimal measure for long-form reading. */
+  --measure: 62ch;
+  --measure-wide: 78ch;
+}
+
+/* ------------------------------------------------------------------ */
+/* Global type refinements                                             */
+/* ------------------------------------------------------------------ */
+
+body {
+  font-size: var(--text-base);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Display type: tight leading and negative tracking. Reserved for the
+   landing hero - the single highest-impact "not generated" signal, and
+   the single easiest thing to overuse. */
+.landing-hero h1 {
+  font-size: var(--text-display);
+  line-height: 1.02;
+  letter-spacing: -0.028em;
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+/* Internal page titles. These are application screens, not a campaign:
+   a page title is a label for the content below it, not a statement. */
+.page-heading h1,
+.communication-detail-heading h1,
+.project-detail-heading h1 {
+  font-size: var(--text-page-title);
+  line-height: 1.18;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+/* Section and sub-headings keep the base sheet's compact scale. A
+   blanket h2/h3 override here would out-size the page title and invert
+   the hierarchy, so only weight and tracking are adjusted. */
+h2 {
+  font-weight: 600;
+}
+
+h3 {
+  font-weight: 600;
+}
+
+/* Long-form copy gets a real measure so lines do not run long. */
+.hero-description,
+.page-subtitle,
+.full-content {
+  max-width: var(--measure);
+}
+
+/* Eyebrows are the only place small caps are justified: they label a
+   section without competing with it. */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Numerals and codes get the mono face. Labels stay in the sans face -
+   monospace on every label is the same "adding character" tic that
+   theme decoration falls into. */
+.section-count,
+.extract-num,
+.insight-number {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Large figures align on the decimal as they count. */
+.stat-card strong {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Labels: small, quiet, uppercase - readable metadata without noise. */
+.stat-label,
+.source-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ------------------------------------------------------------------ */
+/* Landing page                                                        */
+/* ------------------------------------------------------------------ */
+
+.landing-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--background);
+}
+
+/* Nav: sticky, so it must be opaque — a transparent sticky bar lets the
+   hero scroll underneath it and show through. flex-shrink: 0 stops the
+   hero's flex: 1 from squashing the bar on short viewports. */
+.landing-nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  flex-shrink: 0;
+  padding: var(--s-5) var(--page-pad-x);
+  background: var(--background);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Solid backdrop so nothing bleeds through while the hero scrolls under
+   the bar; the hairline rule above keeps it quiet. */
+@supports (backdrop-filter: blur(1px)) {
+  .landing-nav {
+    background: color-mix(in srgb, var(--background) 88%, transparent);
+    backdrop-filter: saturate(140%) blur(10px);
+  }
+}
+
+.landing-nav-link {
+  padding: var(--s-2) var(--s-3);
+  color: var(--muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  transition: color 140ms ease, background 140ms ease;
+}
+
+.landing-nav-link:hover {
+  color: var(--text);
+  background: var(--surface-soft);
+}
+
+/* Asymmetric hero: copy leads, the extraction index supports.
+   Deliberately top-aligned rather than centred, so the two columns do
+   not read as a symmetric template. */
+.landing-hero {
+  flex: 1 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+  align-items: start;
+  gap: clamp(40px, 6vw, 88px);
+  min-height: 0;
+  width: min(100%, var(--content-max));
+  margin: 0 auto;
+  padding: clamp(48px, 8vw, 104px) var(--page-pad-x) clamp(56px, 8vw, 96px);
+}
+
+.landing-hero h1 {
+  margin: var(--s-5) 0 0;
+  max-width: 16ch;
+}
+
+.landing-hero .eyebrow {
+  margin: 0;
+}
+
+.hero-description {
+  margin: var(--s-5) 0 0;
+  max-width: 52ch;
+  color: var(--muted);
+  font-size: var(--text-md);
+  line-height: 1.62;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+  align-items: center;
+  margin-top: var(--s-7);
+}
+
+/* ---- Extraction index ----------------------------------------- */
+
+.hero-aside {
+  position: relative;
+  padding-top: var(--s-2);
+}
+
+.extract-heading {
+  margin: 0 0 var(--s-4);
+  padding-bottom: var(--s-3);
+  border-bottom: 1px solid var(--border-strong);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.extract-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.extract-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: var(--s-3);
+  align-items: baseline;
+  padding: var(--s-4) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.extract-num {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  padding-top: 2px;
+}
+
+.extract-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.extract-body strong {
+  font-size: var(--text-base);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.extract-body span {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.extract-footnote {
+  margin: var(--s-5) 0 0;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  font-style: italic;
+  max-width: 34ch;
+}
+
+/* ---- Footer ---------------------------------------------------- */
+
+.landing-foot {
+  flex-shrink: 0;
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+}
+
+.landing-foot-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-4) var(--s-6);
+  align-items: center;
+  justify-content: space-between;
+  width: min(100%, var(--content-max));
+  margin: 0 auto;
+  padding: var(--s-6) var(--page-pad-x);
+}
+
+.landing-foot-brand {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.landing-foot-links {
+  display: flex;
+  gap: var(--s-5);
+}
+
+.landing-foot-links a {
+  color: var(--muted);
+  font-size: var(--text-sm);
+  transition: color 140ms ease;
+}
+
+.landing-foot-links a:hover {
+  color: var(--text);
+}
+
+.landing-foot-note {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+/* ------------------------------------------------------------------ */
+/* Refinements to existing components                                  */
+/* ------------------------------------------------------------------ */
+
+/* Cards: hairlines instead of lift, so they sit on the page rather
+   than float above it. */
+.stat-card,
+.project-card,
+.source-content-card,
+.insight-panel {
+  border-radius: var(--radius-md);
+  box-shadow: none;
+}
+
+/* The active nav item is marked with weight, not a colour block. */
+.main-nav a {
+  border-radius: var(--radius-sm);
+  transition: color 140ms ease, background 140ms ease;
+}
+
+.main-nav a.active {
+  box-shadow: none;
+  background: rgba(12, 59, 76, 0.07);
+}
+
+/* Status badges: small, quiet, not filled for emphasis. */
+.status-badge {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  border-radius: var(--radius-sm);
+}
+
+/* Progress bars are the one place a fill earns its keep: they carry
+   a real proportion. Kept quiet otherwise. */
+.draft-progress {
+  height: 4px;
+  background: var(--surface-soft);
+}
+
+.draft-progress-fill {
+  position: relative;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--primary);
+  transition: width 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ------------------------------------------------------------------ */
+/* Responsive                                                          */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 1000px) {
+  .landing-hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s-8);
+  }
+
+  .landing-hero h1 {
+    max-width: 20ch;
+  }
+
+  .hero-aside {
+    max-width: 560px;
+  }
+}
+
+@media (max-width: 680px) {
+  .landing-hero {
+    padding-top: var(--s-7);
+  }
+
+  .landing-hero h1 {
+    max-width: none;
+  }
+
+  .hero-actions {
+    margin-top: var(--s-6);
+  }
+
+  .landing-foot-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--s-3);
+  }
+}

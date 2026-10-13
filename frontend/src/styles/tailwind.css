@@ -1,0 +1,33 @@
+@import "tailwindcss" important;
+
+/*
+ * Preflight is intentionally NOT imported.
+ *
+ * This project styles itself with a hand-written design system in
+ * `styles/app.css`. Tailwind's Preflight reset would override the existing
+ * element defaults (button/input/heading margins, border-box sizing on
+ * elements the stylesheet relies on) and cause visual regressions.
+ *
+ * Tailwind is therefore scoped to opt-in utilities only.
+ */
+@theme {
+  /* Brand tokens mirrored from styles/app.css so shadcn components match
+     the existing palette. Kept in sync manually - the values here match
+     the --primary / --surface variables defined in app.css. */
+  --color-arch-primary: #00394a;
+  --color-arch-primary-soft: #0b5568;
+  --color-arch-accent: #c98a3c;
+  --color-arch-surface: #f6f4ef;
+  --color-arch-ink: #12222b;
+}
+
+/* Respect users who ask the OS to reduce motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

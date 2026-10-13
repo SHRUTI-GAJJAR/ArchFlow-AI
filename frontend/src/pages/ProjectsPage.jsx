@@ -2,17 +2,19 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Modal from '../components/Modal'
 import ProjectForm from '../components/ProjectForm'
-import { EmptyState, ErrorMessage, LoadingState, SuccessMessage } from '../components/UiStates'
+import { EmptyState, ErrorMessage, LoadingState } from '../components/UiStates'
 import { getApiErrorMessage } from '../services/api'
+import { useToast } from '../context/ToastContext'
 import { createProject, deleteProject, getProjects, updateProject } from '../services/projectService'
 import { capitalize, formatRelativeDate, getId } from '../utils/formatters'
 import { Plus, MoveRight, SquarePen } from "lucide-react";
+import { ShimmerCard } from '../components/ui/shimmer-card'
 
 export default function ProjectsPage() {
+  const toast = useToast()
   const [projects, setProjects] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
   const [modal, setModal] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [deletingProjectId, setDeletingProjectId] = useState(null)
@@ -77,14 +79,14 @@ export default function ProjectsPage() {
           )
         )
 
-        setSuccess('Project updated successfully.')
+        toast.success('Project updated successfully.')
       } else {
         const newProject = await createProject(projectData)
 
         if (requestId !== submitRequestRef.current) return
 
         setProjects((current) => [newProject, ...current])
-        setSuccess('Project created successfully.')
+        toast.success('Project created successfully.')
       }
 
       setModal(null)
@@ -121,7 +123,7 @@ export default function ProjectsPage() {
         current.filter((item) => getId(item) !== projectId)
       )
 
-      setSuccess('Project deleted successfully.')
+      toast.success('Project deleted successfully.')
     } catch (requestError) {
       if (requestId === deleteRequestRef.current) {
         setError(getApiErrorMessage(requestError))
@@ -154,8 +156,6 @@ export default function ProjectsPage() {
         </button>
       </div>
 
-      <SuccessMessage message={success} />
-
       {error && (
         <ErrorMessage
           message={error}
@@ -181,10 +181,11 @@ export default function ProjectsPage() {
         />
       ) : (
         <div className="project-card-grid">
-          {projects.map((project) => (
-            <article
+          {projects.map((project, index) => (
+            <ShimmerCard
               className="project-card"
               key={getId(project)}
+              style={{ animationDelay: `${Math.min(index, 6) * 70}ms` }}
             >
               <div className="project-card-top">
                 <span
@@ -253,7 +254,7 @@ export default function ProjectsPage() {
                   Delete
                 </button>
               </div>
-            </article>
+            </ShimmerCard>
           ))}
         </div>
       )}

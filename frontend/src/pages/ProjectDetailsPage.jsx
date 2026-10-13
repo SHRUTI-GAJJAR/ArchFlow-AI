@@ -2,17 +2,20 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import Modal from '../components/Modal'
 import CommunicationForm from '../components/CommunicationForm'
-import { EmptyState, ErrorMessage, LoadingState, SuccessMessage } from '../components/UiStates'
+import { EmptyState, ErrorMessage, LoadingState } from '../components/UiStates'
 import { getApiErrorMessage } from '../services/api'
-import { getCommunicationInsight } from '../services/aiService'
+import { useToast } from '../context/ToastContext'
+import { getCommunicationInsights } from '../services/aiService'
 import { createCommunication, deleteCommunication, getProjectCommunications } from '../services/communicationService'
 import { deleteProject, getProject } from '../services/projectService'
 import { capitalize, formatDate, formatRelativeDate, getId } from '../utils/formatters'
 import { MoveLeft , Plus , MoveRight   } from "lucide-react";
+import { BlurFade } from '../components/ui/blur-fade'
 
 export default function ProjectDetailsPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
+  const toast = useToast()
 
   const [project, setProject] = useState(null)
   const [communications, setCommunications] = useState([])
@@ -20,7 +23,6 @@ export default function ProjectDetailsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDeletingProject, setIsDeletingProject] = useState(false)
@@ -59,20 +61,12 @@ export default function ProjectDetailsPage() {
       setProject(projectData)
       setCommunications(communicationData)
 
-      const nextInsightMap = {}
+      // Insights are fetched in one batched request rather than one call
+      // per communication. Previously this was a sequential loop, which
+      // meant N+1 round trips before the page could finish loading.
+      const communicationIds = communicationData.map((item) => getId(item))
 
-      for (const communication of communicationData) {
-        if (requestId !== loadRequestRef.current) return
-
-        const id = getId(communication)
-
-        try {
-          nextInsightMap[id] = await getCommunicationInsight(id)
-        } catch (insightError) {
-          if (insightError.response?.status !== 404) throw insightError
-          nextInsightMap[id] = null
-        }
-      }
+      const nextInsightMap = await getCommunicationInsights(communicationIds)
 
       if (requestId === loadRequestRef.current) {
         setInsightMap(nextInsightMap)
@@ -101,7 +95,7 @@ export default function ProjectDetailsPage() {
 
       setCommunications((current) => [communication, ...current])
       setShowForm(false)
-      setSuccess('Communication added successfully.')
+      toast.success('Communication added successfully.')
     } catch (requestError) {
       if (requestId === submitRequestRef.current) {
         setError(getApiErrorMessage(requestError))
@@ -131,7 +125,7 @@ export default function ProjectDetailsPage() {
         current.filter((item) => getId(item) !== communicationId)
       )
 
-      setSuccess('Communication deleted successfully.')
+      toast.success('Communication deleted successfully.')
     } catch (requestError) {
       if (requestId === deleteCommunicationRequestRef.current) {
         setError(getApiErrorMessage(requestError))
@@ -262,8 +256,6 @@ export default function ProjectDetailsPage() {
         </div>
       </div>
 
-      <SuccessMessage message={success} />
-
       {error && <ErrorMessage message={error} />}
 
       <div className="detail-meta">
@@ -358,7 +350,7 @@ export default function ProjectDetailsPage() {
               </div>
             ) : (
               <div className="communication-list">
-                {filteredCommunications.map((communication) => {
+                {filteredCommunications.map((communication, communicationIndex) => {
                   const insight =
                     insightMap[getId(communication)] || {}
 
@@ -376,9 +368,13 @@ export default function ProjectDetailsPage() {
                     'No saved communication content available.'
 
                   return (
+                    <BlurFade
+                      key={getId(communication)}
+                      delay={Math.min(communicationIndex, 8) * 55}
+                      className="communication-row-wrap"
+                    >
                     <article
                       className="communication-row"
-                      key={getId(communication)}
                     >
                       <div
                         className={`source-icon source-${communication.source}`}
@@ -492,6 +488,7 @@ export default function ProjectDetailsPage() {
                         </button>
                       </div>
                     </article>
+                    </BlurFade>
                   )
                 })}
               </div>

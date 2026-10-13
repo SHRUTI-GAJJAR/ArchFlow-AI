@@ -5,6 +5,8 @@ import { getApiErrorMessage } from '../services/api'
 import { loginUser, registerUser } from '../services/authService'
 import { ErrorMessage } from '../components/UiStates'
 import { MoveRight } from "lucide-react";
+import { BlurFade } from '../components/ui/blur-fade'
+import { ShimmerButton } from '../components/ui/shimmer-button'
 
 export default function AuthPage({ mode }) {
   const isRegistering = mode === 'register'
@@ -61,36 +63,47 @@ export default function AuthPage({ mode }) {
   return (
     <main className="auth-page">
       <section className="auth-brand-panel">
-        <Link className="brand brand-light" to="/">
-          <span className="brand-symbol">AF</span>
-          <span>
-            ArchFlow <strong>AI</strong>
-          </span>
-        </Link>
+        <BlurFade delay={0}>
+          <Link className="brand brand-light" to="/">
+            <span className="brand-symbol">AF</span>
+            <span>
+              ArchFlow <strong>AI</strong>
+            </span>
+          </Link>
+        </BlurFade>
 
         <div className="auth-story">
-          <p className="eyebrow eyebrow-light">
-            Project communication, made actionable
-          </p>
+          <BlurFade delay={90}>
+            <p className="eyebrow eyebrow-light">
+              Project communication, made actionable
+            </p>
+          </BlurFade>
 
-          <h1>Turn project communication into actionable insights.</h1>
+          <BlurFade delay={170}>
+            <h1>Turn project communication into actionable insights.</h1>
+          </BlurFade>
 
-          <p>
-            Analyze project conversations to identify decisions, action items,
-            deadlines, and people involved.
-          </p>
+          <BlurFade delay={250}>
+            <p>
+              Analyze project conversations to identify decisions, action items,
+              deadlines, and people involved.
+            </p>
+          </BlurFade>
 
-          <div className="story-flow">
-            <span>Capture</span>
-            <MoveRight size={20} strokeWidth={1.8} />
-            <span>Analyze</span>
-            <MoveRight size={20} strokeWidth={1.8} />
-            <span>Act</span>
-          </div>
+          <BlurFade delay={340}>
+            <div className="story-flow">
+              <span>Capture</span>
+              <MoveRight size={20} strokeWidth={1.8} />
+              <span>Analyze</span>
+              <MoveRight size={20} strokeWidth={1.8} />
+              <span>Act</span>
+            </div>
+          </BlurFade>
         </div>
       </section>
 
       <section className="auth-form-panel">
+        <BlurFade delay={120} className="auth-card-animate">
         <div className="auth-card">
           <div className="auth-heading">
             <p className="eyebrow">Welcome to ArchFlow AI</p>
@@ -147,17 +160,18 @@ export default function AuthPage({ mode }) {
               />
             </label>
 
-            <button
+            <ShimmerButton
               className="button button-primary button-full"
               type="submit"
               disabled={isSubmitting}
+              shimmerDuration="1.8s"
             >
               {isSubmitting
                 ? 'Working...'
                 : isRegistering
                   ? 'Create account'
                   : 'Sign in'}
-            </button>
+            </ShimmerButton>
           </form>
 
           <p className="auth-switch">
@@ -169,6 +183,7 @@ export default function AuthPage({ mode }) {
             </Link>
           </p>
         </div>
+        </BlurFade>
       </section>
     </main>
   )

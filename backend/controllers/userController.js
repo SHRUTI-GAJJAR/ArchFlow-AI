@@ -1,113 +1,77 @@
 const User = require("../models/User");
+const ApiError = require("../utils/ApiError");
+const asyncHandler = require("../utils/asyncHandler");
 
+// Every handler here operates strictly on the authenticated user.
+// Previously these accepted an arbitrary :id, which let any logged-in
+// user read, update or delete any other account.
+//
+// Support for acting on a *different* user id can be reintroduced later
+// behind an explicit admin guard (e.g. req.user.role === "admin").
 
-// Get all users
-const getUsers = async (req, res) => {
-  try {
-    const users = await User.find().select("-password");
+// Return the signed-in user's profile
+const getMyProfile = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id).select("-password");
 
-    res.status(200).json({
-      success: true,
-      count: users.length,
-      users,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch users",
-      error: error.message,
-    });
+  if (!user) {
+    throw ApiError.notFound("User not found");
   }
-};
 
-// Get user by ID
-const getUserById = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id).select("-password");
+  res.status(200).json({
+    success: true,
+    user,
+  });
+});
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
+// Update the signed-in user's profile
+const updateMyProfile = asyncHandler(async (req, res) => {
+  const { name, email } = req.body;
+
+  const updates = {};
+
+  if (name !== undefined) updates.name = name;
+  if (email !== undefined) updates.email = email;
+
+  if (Object.keys(updates).length === 0) {
+    throw ApiError.badRequest("Nothing to update. Provide a name or an email.");
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    updates,
+    {
+      new: true,
+      runValidators: true,
     }
+  ).select("-password");
 
-    res.status(200).json({
-      success: true,
-      user,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch user",
-      error: error.message,
-    });
+  if (!user) {
+    throw ApiError.notFound("User not found");
   }
-};
 
-// Update user
-const updateUser = async (req, res) => {
-  try {
-    const { name, email } = req.body;
+  res.status(200).json({
+    success: true,
+    message: "User updated successfully",
+    user,
+  });
+});
 
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      { name, email },
-      {
-        new: true,
-        runValidators: true,
-      }
-    ).select("-password");
+// Delete the signed-in user's account
+const deleteMyAccount = asyncHandler(async (req, res) => {
+  const user = await User.findByIdAndDelete(req.user._id);
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "User updated successfully",
-      user,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to update user",
-      error: error.message,
-    });
+  if (!user) {
+    throw ApiError.notFound("User not found");
   }
-};
 
-// Delete user
-const deleteUser = async (req, res) => {
-  try {
-    const user = await User.findByIdAndDelete(req.params.id);
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "User deleted successfully",
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to delete user",
-      error: error.message,
-    });
-  }
-};
+  res.status(200).json({
+    success: true,
+    message: "User deleted successfully",
+  });
+});
 
 module.exports = {
-  getUsers,
-  getUserById,
-  updateUser,
-  deleteUser,
+  getMyProfile,
+  updateMyProfile,
+  deleteMyAccount,
 };

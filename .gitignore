@@ -1,8 +1,20 @@
 node_modules/
+coverage/
+
 .env
 .env.*
-frontend/.env
-backend/.env
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Build output
 frontend/dist/
 backend/logs/
-.DS_Store
